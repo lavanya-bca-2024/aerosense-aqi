@@ -64,7 +64,7 @@ function getGenAIClient() {
 }
 
 /**
- * Generates structured AI Advisor recommendations
+ * Generates punchy, ultra-concise AI Advisor recommendations (scannable, no fluff!)
  */
 export async function generateAirQualityAdvice({
   city,
@@ -81,69 +81,53 @@ export async function generateAirQualityAdvice({
     },
   });
 
-  const cityName = city?.name || "the city";
-  const region = city?.admin1 ? `${city.admin1}, ` : "";
-  const locationStr = `${cityName}, ${region}${city?.country || "India"}`;
-
+  const locationStr = `${city?.name || "City"}, ${city?.country || "India"}`;
   const aqi = currentData?.metrics?.us_aqi ?? "Unknown";
   const pm25 = currentData?.metrics?.pm2_5 ?? "Unknown";
   const pm10 = currentData?.metrics?.pm10 ?? "Unknown";
   const no2 = currentData?.metrics?.nitrogen_dioxide ?? "Unknown";
   const o3 = currentData?.metrics?.ozone ?? "Unknown";
-  const so2 = currentData?.metrics?.sulphur_dioxide ?? "Unknown";
-  const co = currentData?.metrics?.carbon_monoxide ?? "Unknown";
 
   const prompt = `
-You are AeroSense AI, an expert environmental epidemiologist and urban air quality advisor specializing in Indian urban microclimates (traffic corridors, dust suspension, stubble/thermal inversions, and photochemical smog).
+You are AeroSense AI. Analyze live air quality for ${locationStr}:
+AQI: ${aqi}, PM2.5: ${pm25} µg/m³, PM10: ${pm10} µg/m³, NO2: ${no2} µg/m³, O3: ${o3} µg/m³.
+User Profile: ${healthProfile}.
+Activity: ${activity || "Daily routine"}.
 
-Current Live Air Quality Data for ${locationStr}:
-- US AQI: ${aqi}
-- PM2.5 (Fine Particulate): ${pm25} µg/m³ (WHO safe threshold is 15 µg/m³, CPCB limit is 60 µg/m³)
-- PM10 (Coarse Dust): ${pm10} µg/m³ (WHO threshold 45 µg/m³, CPCB limit 100 µg/m³)
-- NO₂ (Nitrogen Dioxide from traffic/diesel): ${no2} µg/m³ (WHO threshold 25 µg/m³)
-- O₃ (Ground-level Ozone): ${o3} µg/m³ (WHO threshold 100 µg/m³)
-- SO₂: ${so2} µg/m³
-- CO: ${co} µg/m³
-
-User Health Profile: ${healthProfile}
-Planned Activity: ${activity || "Standard daily urban routine"}
-
-Task:
-Analyze this exact user context against the live pollutant concentrations and generate a hyper-specific, actionable health advisory in JSON format.
+STRICT FORMAT RULES:
+1. "verdict": "Safe" | "Caution" | "Avoid".
+2. "verdictReason": A SINGLE crisp sentence (MAX 15 words).
+3. "tips": Array of 3 items (Mask, Best Time, Indoor Air). Each item MUST have:
+   - "action": Bold punchy headline (2-4 words, e.g. "Wear N95 Mask" or "Midday 12-3 PM" or "Run HEPA Purifier").
+   - "detail": ULTRA-CONCISE sentence (STRICTLY MAXIMUM 10 WORDS). No long text!
+4. "contextualInsight": 1 short punchy sentence (max 12 words).
 
 JSON Schema:
 {
   "verdict": "Safe" | "Caution" | "Avoid",
-  "verdictReason": "Concise 1-2 sentence punchy rationale combining their exact activity, health risk, and dominant pollutant.",
-  "riskLevel": "Low" | "Moderate" | "High" | "Severe",
-  "dominantPollutant": "PM2.5" | "PM10" | "NO2" | "Ozone",
+  "verdictReason": "Single crisp sentence under 15 words.",
   "tips": [
     {
       "category": "mask",
-      "title": "Mask Recommendation",
-      "action": "Specific mask guidance (e.g., No mask needed / Well-fitted N95 or KF94 respirator / Avoid cloth masks as they fail on PM2.5 / Exhaust valve vs non-valve advice).",
-      "detail": "1-2 sentences on how to wear it and why."
+      "title": "Mask",
+      "action": "Wear N95 Mask",
+      "detail": "Filters fine combustion soot in traffic."
     },
     {
       "category": "window",
-      "title": "Best Time Window",
-      "action": "Concrete recommended time window for their planned activity (or when to reschedule, e.g. midday vs early morning inversion vs late night).",
-      "detail": "1-2 sentences explaining diurnal pollutant patterns in Indian cities."
+      "title": "Best Time",
+      "action": "Midday 12–3 PM",
+      "detail": "Avoid morning temperature inversions."
     },
     {
       "category": "indoor",
-      "title": "Indoor Air Advice",
-      "action": "Specific indoor air quality mitigation (e.g. cross-ventilation vs keeping windows closed, HEPA purifier fan speed, avoiding agarbatti/incense/frying, wet mopping).",
-      "detail": "1-2 sentences with practical Indian household tips."
+      "title": "Indoor Air",
+      "action": "Run HEPA Purifier",
+      "detail": "Keep street-facing windows sealed."
     }
   ],
-  "contextualInsight": "A sharp urban insight (e.g. regarding local weather, elevation, peak traffic hours, or thermal inversion trapping exhaust near ground level)."
+  "contextualInsight": "PM2.5 levels are elevated from morning urban traffic."
 }
-
-Ensure the verdict strictly adheres to medical standards:
-- If US AQI > 150 or PM2.5 > 75 for Sensitive/Asthma/Kids/Elderly: Verdict must be "Avoid" or strong "Caution".
-- If activity is heavy aerobic (Outdoor Runner) and AQI > 120: Recommend indoor alternatives or shifting hours.
-- Return ONLY valid JSON.
 `;
 
   try {
@@ -158,9 +142,8 @@ Ensure the verdict strictly adheres to medical standards:
 }
 
 /**
- * Conducts interactive follow-up chat with Gemini.
- * NOTE: Gemini requires that chat history strictly begins with role 'user' and alternates properly.
- * Welcome assistant messages are filtered out so history starts with a real user prompt.
+ * Conducts warm, casual, ultra-short follow-up chat with Breezy
+ * Breezy always replies in 1-2 short sentences max (under 35 words) with 1 emoji!
  */
 export async function sendFollowUpChatMessage({
   chatHistory = [],
@@ -173,18 +156,16 @@ export async function sendFollowUpChatMessage({
   const genAI = getGenAIClient();
   const model = genAI.getGenerativeModel({
     model: MODEL_NAME,
-    systemInstruction: `You are Breezy, a friendly, scientifically rigorous, and empathetic air quality assistant for Indian cities.
-You are chatting with a user in ${city?.name || "an Indian city"}, ${city?.country || "India"}.
-Live Air Metrics:
-- Current US AQI: ${currentData?.metrics?.us_aqi}
-- PM2.5: ${currentData?.metrics?.pm2_5} µg/m³ (WHO threshold 15 µg/m³)
-- PM10: ${currentData?.metrics?.pm10} µg/m³
-- NO2: ${currentData?.metrics?.nitrogen_dioxide} µg/m³
-- Ozone: ${currentData?.metrics?.ozone} µg/m³
-- User Health Profile: ${healthProfile}
-- Planned Activity: ${activity}
+    systemInstruction: `You are Breezy, a warm, cheerful, and helpful friend checking Indian city air quality.
+Current Location: ${city?.name || "the city"}, ${city?.country || "India"}.
+Live Data: US AQI ${currentData?.metrics?.us_aqi}, PM2.5 ${currentData?.metrics?.pm2_5} µg/m³.
+User: ${healthProfile} planning "${activity}".
 
-Tone: Cheerful, clear, and reassuring like a friendly green breeze. Answer concisely in 2-3 focused paragraphs or bullet points with practical advice on masks (N95), workout timing, indoor ventilation, and traffic avoidance.`,
+STRICT RESPONSE RULES:
+1. Talk like a friendly, caring companion—warm, casual, and encouraging.
+2. STRICT LENGTH: Reply in EXACTLY 1 or 2 short sentences max (under 35 words total).
+3. Include exactly 1 fitting emoji (🍃, 🏃, 😷, ☀️, or 🏠).
+4. NEVER write long paragraphs, technical jargon, or bullet lists. Be super concise, punchy, and actionable!`,
   });
 
   // Filter chatHistory so it strictly begins with the first 'user' turn (omits initial welcome greeting)
@@ -208,8 +189,7 @@ Tone: Cheerful, clear, and reassuring like a friendly green breeze. Answer conci
     }
   }
 
-  // If the last item in validHistory is already a user message (e.g. if the caller pushed it before calling),
-  // pop it so chat.sendMessage(userMessage) passes it as the active turn.
+  // If the last item in validHistory is already a user message, pop it so chat.sendMessage passes it as the active turn.
   if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === "user") {
     validHistory.pop();
   }

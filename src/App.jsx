@@ -7,6 +7,7 @@ import GeminiAdvisor from "./components/GeminiAdvisor";
 import TabbedAnalytics from "./components/TabbedAnalytics";
 import BreezyChatbot from "./components/BreezyChatbot";
 import ApiKeyModal from "./components/ApiKeyModal";
+import AnimatedBackground from "./components/AnimatedBackground";
 import { DEFAULT_CITY, fetchAirQualityData } from "./services/openMeteo";
 import { generateAirQualityAdvice, hasGeminiApiKey } from "./services/gemini";
 import { getAqiCategory } from "./utils/aqiUtils";
@@ -48,7 +49,7 @@ export default function App() {
     }
   }, []);
 
-  // Request Gemini AI advice
+  // Request Gemini AI advice with ultra-concise rules
   const consultGeminiAdvisor = useCallback(
     async (city, data, profile, act) => {
       if (!data) return;
@@ -58,30 +59,28 @@ export default function App() {
         const category = getAqiCategory(aqi);
         setAdvice({
           verdict: category.verdict,
-          verdictReason: `Current US AQI is ${aqi} (${category.label}) in ${city.name}. For "${act}" with ${profile} profile, standard precautions are advised.`,
+          verdictReason: `Current air is ${category.label.toLowerCase()} for your routine.`,
           riskLevel: category.label,
-          dominantPollutant: data.metrics?.pm2_5 > 40 ? "PM2.5" : "PM10",
           tips: [
             {
               category: "mask",
-              title: "Mask Recommendation",
-              action: aqi > 100 ? "Wear a well-fitted N95 or KF94 respirator" : "Standard mask optional based on traffic density",
-              detail: "Standard surgical or cloth masks filter less than 30% of sub-2.5µm combustion soot.",
+              title: "Mask",
+              action: aqi > 100 ? "Wear N95 Mask" : "Mask Optional",
+              detail: aqi > 100 ? "Filters fine soot particles in traffic." : "Air quality poses minimal inhalation risk.",
             },
             {
               category: "window",
-              title: "Optimal Time Window",
-              action: "Prefer late mornings or afternoons (11 AM - 4 PM)",
-              detail: "Early morning thermal inversions in Indian cities trap ground emissions close to breathing zones.",
+              title: "Best Time",
+              action: "Midday 12–3 PM",
+              detail: "Avoid morning temperature inversions trapping exhaust.",
             },
             {
               category: "indoor",
-              title: "Indoor Air Defense",
-              action: "Seal street-facing windows & use HEPA air purifier",
-              detail: "Wet-mop floors to capture settled coarse particulate matter without creating airborne dust.",
+              title: "Indoor Air",
+              action: "Run HEPA Purifier",
+              detail: "Keep street windows sealed and wet mop.",
             },
           ],
-          contextualInsight: `Live readings reflect current urban vehicular & meteorological patterns in ${city.name}.`,
         });
         return;
       }
@@ -101,28 +100,27 @@ export default function App() {
         const category = getAqiCategory(aqi);
         setAdvice({
           verdict: category.verdict,
-          verdictReason: `Advisory based on AQI ${aqi} (${category.label}) for ${profile}. (Advisor error: ${err.message})`,
+          verdictReason: `Air quality is ${category.label.toLowerCase()} for your health profile.`,
           tips: [
             {
               category: "mask",
-              title: "Mask Recommendation",
-              action: aqi > 100 ? "Wear certified N95 mask" : "Mask optional outdoors",
-              detail: "Ensure nose clip is pressed firmly against facial contours.",
+              title: "Mask",
+              action: aqi > 100 ? "Wear N95 Mask" : "Mask Optional",
+              detail: "Filters microscopic traffic combustion soot.",
             },
             {
               category: "window",
-              title: "Best Time Window",
-              action: "Avoid early morning peak traffic hours (7:30 - 10:30 AM)",
-              detail: "Shifting workouts reduces toxic particulate inhalation by up to 40%.",
+              title: "Best Time",
+              action: "Midday 12–3 PM",
+              detail: "Avoid morning peak traffic hours.",
             },
             {
               category: "indoor",
-              title: "Indoor Air Defense",
-              action: "Recirculate indoor air and avoid indoor combustion",
-              detail: "Avoid incense sticks and open frying in unventilated kitchen areas.",
+              title: "Indoor Air",
+              action: "Recirculate Air",
+              detail: "Keep street windows closed during traffic.",
             },
           ],
-          contextualInsight: `Live sensor data for ${city.name} indicates PM2.5 at ${data.metrics?.pm2_5} µg/m³.`,
         });
       } finally {
         setIsLoadingAdvice(false);
@@ -158,34 +156,21 @@ export default function App() {
     });
   };
 
+  const currentAqi = airData?.metrics?.us_aqi ?? 60;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#DCFCE7] via-[#E8F5ED] to-[#D1FAE5] text-forest-900 flex flex-col font-sans relative botanical-bg">
-      {/* Subtle Botanical Leaf Ambient Accents in background */}
-      <div className="pointer-events-none fixed top-0 right-0 w-96 h-96 opacity-25 overflow-hidden z-0">
-        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-emerald-400">
-          <path
-            d="M50 10C80 20 160 50 180 120C190 160 160 190 120 180C50 160 20 80 10 50Z"
-            fill="currentColor"
-          />
-        </svg>
-      </div>
-      <div className="pointer-events-none fixed bottom-0 left-0 w-80 h-80 opacity-20 overflow-hidden z-0">
-        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-teal-400">
-          <path
-            d="M20 180C40 120 80 40 150 20C180 10 190 40 170 80C140 140 70 180 20 180Z"
-            fill="currentColor"
-          />
-        </svg>
-      </div>
+    <div className="min-h-screen text-forest-900 flex flex-col font-sans relative selection:bg-emerald-300 selection:text-emerald-950">
+      {/* 1. Dynamic Air-Quality Background Animation (morphes with AQI) */}
+      <AnimatedBackground aqi={currentAqi} />
 
       {/* Top Navigation Bar */}
       <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 relative z-10">
+      {/* Main Content Area with pb-24 so Ask Breezy button never overlaps cards */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 relative z-10 pb-24">
         {/* Error Alert if Air API fails */}
         {airError && (
-          <div className="p-4 rounded-3xl bg-rose-50/95 border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm shadow-soft">
+          <div className="p-4 rounded-3xl bg-rose-50/95 backdrop-blur-md border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm shadow-soft">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{airError}</span>
@@ -219,8 +204,8 @@ export default function App() {
                 isRefreshing={isLoadingAir}
               />
             ) : (
-              <div className="h-56 rounded-3xl bg-white/90 backdrop-blur-sm border border-emerald-200 flex items-center justify-center animate-pulse shadow-soft">
-                <div className="flex items-center gap-2.5 text-forest-500">
+              <div className="h-56 rounded-3xl bg-white/85 backdrop-blur-md border border-emerald-200 flex items-center justify-center animate-pulse shadow-soft">
+                <div className="flex items-center gap-2 text-forest-500">
                   <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
                   <span className="text-sm font-medium">Fetching air data for {selectedCity.name}...</span>
                 </div>
@@ -259,7 +244,7 @@ export default function App() {
         <TabbedAnalytics currentData={airData} />
       </main>
 
-      {/* Cute Floating Chatbot: Breezy */}
+      {/* Cute Floating Chatbot: Breezy (Super short, cozy & warm!) */}
       <BreezyChatbot
         city={selectedCity}
         currentData={airData}
@@ -278,9 +263,9 @@ export default function App() {
             <span>Urban Air Quality Assistant for Indian Cities</span>
           </div>
           <div className="flex items-center gap-3 text-forest-600 font-medium text-[11px]">
-            <span>Real-time Local Sensor Data</span>
+            <span>Live Sensor Feeds</span>
             <span>•</span>
-            <span>WHO & CPCB NAAQS Standards</span>
+            <span>WHO & CPCB Standards</span>
           </div>
         </div>
       </footer>

@@ -3,9 +3,7 @@ import {
   X, 
   Send, 
   Sparkles, 
-  MessageSquare, 
-  Key, 
-  Bot
+  Key
 } from "lucide-react";
 import { sendFollowUpChatMessage, hasGeminiApiKey } from "../services/gemini";
 
@@ -18,7 +16,6 @@ export function BreezyMascot({ className = "w-6 h-6", isWaving = false }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Breeze Swirl Behind */}
       <path
         d="M10 50C15 35 30 35 45 42C60 48 75 45 85 35"
         stroke="#A7F3D0"
@@ -32,8 +29,6 @@ export function BreezyMascot({ className = "w-6 h-6", isWaving = false }) {
         strokeWidth="5"
         strokeLinecap="round"
       />
-
-      {/* Main Cute Leaf Body */}
       <path
         d="M50 12C30 20 20 42 24 64C28 80 44 92 64 88C82 84 92 66 86 44C82 26 68 12 50 12Z"
         fill="url(#breezyGradient)"
@@ -45,29 +40,19 @@ export function BreezyMascot({ className = "w-6 h-6", isWaving = false }) {
         strokeLinecap="round"
         strokeOpacity="0.4"
       />
-
-      {/* Cheerful Kawaii Eyes */}
       <circle cx="43" cy="48" r="4.5" fill="#064E3B" />
       <circle cx="41.5" cy="46.5" r="1.5" fill="white" />
-
       <circle cx="63" cy="48" r="4.5" fill="#064E3B" />
       <circle cx="61.5" cy="46.5" r="1.5" fill="white" />
-
-      {/* Rosy Cheeks */}
       <circle cx="36" cy="56" r="4" fill="#FCA5A5" fillOpacity="0.6" />
       <circle cx="70" cy="56" r="4" fill="#FCA5A5" fillOpacity="0.6" />
-
-      {/* Sweet Smile */}
       <path
         d="M48 57C51 61 55 61 58 57"
         stroke="#064E3B"
         strokeWidth="3"
         strokeLinecap="round"
       />
-
-      {/* Sprout Tip Highlight */}
       <circle cx="50" cy="14" r="3" fill="#D1FAE5" />
-
       <defs>
         <linearGradient
           id="breezyGradient"
@@ -97,10 +82,11 @@ export default function BreezyChatbot({
   const [isSending, setIsSending] = useState(false);
   const keyConfigured = hasGeminiApiKey();
 
+  // Casual 2-line greeting
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hi there! I'm **Breezy**, your friendly air quality assistant 🍃\n\nI'm tuned to live conditions in **${city?.name || "your city"}** for **${healthProfile}** doing **"${activity}"**.\n\nAsk me anything about travel timings, mask advice, or indoor ventilation!`,
+      content: `Hey! I’m Breezy 🍃 Checking ${city?.name || "your city"}’s air for you—what are you planning today?`,
       timestamp: "Just now",
     },
   ]);
@@ -153,7 +139,7 @@ export default function BreezyChatbot({
       console.error("Breezy chat error:", err);
       const errorMsg = {
         role: "assistant",
-        content: `Oops! Breezy couldn't reach the assistant: ${err.message || "Please check your Gemini API key in settings."}`,
+        content: `Oops! Couldn't reach Breezy: ${err.message || "Please check your API key."}`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isError: true,
       };
@@ -164,10 +150,10 @@ export default function BreezyChatbot({
   };
 
   const sampleQuestions = [
-    "Is an N95 mask needed today?",
+    "Need an N95 today?",
     "Best time for my jog?",
-    "Can I open balcony doors tonight?",
-    "Safe for kids to play outdoors right now?",
+    "Can I open windows tonight?",
+    "Safe for kids outside?",
   ];
 
   return (
@@ -178,7 +164,7 @@ export default function BreezyChatbot({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 pl-3 pr-4 py-2 bg-white/95 hover:bg-emerald-50 border border-emerald-300 rounded-full shadow-breezy transition-all duration-300 hover:scale-105"
+            className="group flex items-center gap-2.5 pl-3 pr-4 py-2 bg-white/95 hover:bg-emerald-50 border border-emerald-300 rounded-full shadow-breezy transition-all duration-300 hover:scale-105 backdrop-blur-md"
             title="Chat with Breezy • Air Assistant"
           >
             <div className="relative w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -195,21 +181,21 @@ export default function BreezyChatbot({
 
       {/* Floating Chat Popup Window */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[510px] bg-white rounded-3xl border border-emerald-200 shadow-soft-xl flex flex-col overflow-hidden animate-popupIn">
-          {/* Header without technical model badges */}
-          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-4 text-white flex items-center justify-between shadow-xs">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center p-1 border border-white/30">
-                <BreezyMascot className="w-7 h-7" />
+        <div className="fixed bottom-6 right-6 z-50 w-88 sm:w-96 max-w-[calc(100vw-2rem)] h-[460px] bg-white rounded-3xl border border-emerald-200 shadow-soft-xl flex flex-col overflow-hidden animate-popupIn">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-3.5 text-white flex items-center justify-between shadow-xs">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-white/20 backdrop-blur-xs flex items-center justify-center p-1 border border-white/30">
+                <BreezyMascot className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-extrabold text-sm flex items-center gap-1.5 font-display">
+                <h3 className="font-extrabold text-xs sm:text-sm flex items-center gap-1.5 font-display">
                   <span>Breezy</span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 border border-white/30">
+                  <span className="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-white/20 border border-white/30">
                     Smart Air Assistant
                   </span>
                 </h3>
-                <p className="text-[11px] text-emerald-100/90 flex items-center gap-1">
+                <p className="text-[10px] text-emerald-100 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
                   Live for {city?.name || "your location"}
                 </p>
@@ -222,9 +208,9 @@ export default function BreezyChatbot({
                   type="button"
                   onClick={onOpenApiKeyModal}
                   className="p-1 rounded-lg hover:bg-white/20 text-emerald-100 hover:text-white transition-colors"
-                  title="Configure Gemini API Key"
+                  title="Configure API Key"
                 >
-                  <Key className="w-4 h-4" />
+                  <Key className="w-3.5 h-3.5" />
                 </button>
               )}
               <button
@@ -233,16 +219,16 @@ export default function BreezyChatbot({
                 className="p-1 rounded-lg hover:bg-white/20 text-emerald-100 hover:text-white transition-colors"
                 title="Close chat window"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </div>
 
           {/* Missing Key Warning Pill */}
           {!keyConfigured && (
-            <div className="bg-amber-50 border-b border-amber-200 px-3.5 py-2 flex items-center justify-between text-xs text-amber-900">
-              <span className="text-[11px] font-medium leading-tight">
-                API key not set. Tap to paste your free Gemini key.
+            <div className="bg-amber-50 border-b border-amber-200 px-3 py-1.5 flex items-center justify-between text-xs text-amber-900">
+              <span className="text-[10px] font-medium leading-tight">
+                AI Key missing. Tap to paste free key.
               </span>
               <button
                 type="button"
@@ -255,7 +241,7 @@ export default function BreezyChatbot({
           )}
 
           {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#F6FAF7]">
+          <div className="flex-1 p-3.5 overflow-y-auto space-y-2.5 bg-[#F6FAF7]">
             {messages.map((msg, index) => {
               const isUser = msg.role === "user";
               return (
@@ -264,7 +250,7 @@ export default function BreezyChatbot({
                   className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed shadow-2xs ${
+                    className={`max-w-[85%] rounded-2xl p-2.5 text-xs leading-relaxed shadow-2xs ${
                       isUser
                         ? "bg-emerald-600 text-white font-medium rounded-tr-none"
                         : msg.isError
@@ -281,7 +267,7 @@ export default function BreezyChatbot({
               );
             })}
             {isSending && (
-              <div className="flex items-center gap-2 text-forest-600 text-xs py-1">
+              <div className="flex items-center gap-1.5 text-forest-600 text-xs py-1">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
                 <span>Breezy is thinking...</span>
               </div>
@@ -290,14 +276,14 @@ export default function BreezyChatbot({
           </div>
 
           {/* Quick Questions Chips */}
-          <div className="px-3 py-1.5 bg-white border-t border-emerald-50 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <div className="px-3 py-1.5 bg-white border-t border-emerald-50 flex items-center gap-1 overflow-x-auto scrollbar-none">
             {sampleQuestions.map((q, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => handleSend(q)}
                 disabled={isSending}
-                className="text-[11px] px-2.5 py-1 rounded-xl bg-sage-50 hover:bg-emerald-50 text-forest-700 hover:text-emerald-900 border border-emerald-100 whitespace-nowrap transition-colors"
+                className="text-[10px] px-2.5 py-1 rounded-xl bg-sage-50 hover:bg-emerald-50 text-forest-700 hover:text-emerald-900 border border-emerald-100 whitespace-nowrap transition-colors font-medium"
               >
                 {q}
               </button>
@@ -310,23 +296,23 @@ export default function BreezyChatbot({
               e.preventDefault();
               handleSend();
             }}
-            className="p-3 bg-white border-t border-emerald-100 flex items-center gap-2"
+            className="p-2.5 bg-white border-t border-emerald-100 flex items-center gap-1.5"
           >
             <input
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Ask Breezy about the air..."
+              placeholder="Ask Breezy anything..."
               disabled={isSending}
-              className="flex-1 px-3.5 py-2 bg-sage-50/70 border border-emerald-100 rounded-xl text-xs text-forest-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 transition-all"
+              className="flex-1 px-3 py-1.5 bg-sage-50/70 border border-emerald-100 rounded-xl text-xs text-forest-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 transition-all"
             />
             <button
               type="submit"
               disabled={!inputText.trim() || isSending}
               className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
-              title="Send message to Breezy"
+              title="Send to Breezy"
             >
-              <Send className="w-3.5 h-3.5" />
+              <Send className="w-3 h-3" />
             </button>
           </form>
         </div>
