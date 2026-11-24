@@ -2,10 +2,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const STORAGE_KEY = "aerosense_gemini_api_key";
 const FALLBACK_MODELS = [
-  "gemini-2.5-flash",
+  "gemini-3.5-flash-lite",
   "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
+  "gemini-2.5-flash",
+  "gemini-3.1-flash-lite-preview",
 ];
 
 /**
@@ -76,7 +76,6 @@ function getCachedAdvice(cacheKey) {
     const raw = sessionStorage.getItem(cacheKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    // Cache valid for 10 minutes
     if (Date.now() - parsed.timestamp < 10 * 60 * 1000) {
       return parsed.data;
     }
@@ -102,8 +101,8 @@ function setCachedAdvice(cacheKey, data) {
 
 /**
  * Generates punchy, ultra-concise AI Advisor recommendations
- * With automatic model fallback (gemini-2.5-flash → gemini-2.5-flash-lite → gemini-2.0-flash → gemini-2.0-flash-lite)
- * and sessionStorage caching to withstand free-tier quota limits!
+ * With automatic model fallback across current active models:
+ * ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-3.1-flash-lite-preview']
  */
 export async function generateAirQualityAdvice({
   city,
@@ -171,7 +170,7 @@ JSON Schema:
 
   let lastError = null;
 
-  // Attempt generation with automatic model fallback
+  // Attempt generation with active fallback models
   for (const modelName of FALLBACK_MODELS) {
     try {
       const model = genAI.getGenerativeModel({
@@ -195,13 +194,12 @@ JSON Schema:
     }
   }
 
-  // If all models failed, throw last error
   throw lastError || new Error("Failed to generate air advice from all Gemini fallback models.");
 }
 
 /**
  * Conducts warm, casual, ultra-short follow-up chat with Breezy
- * Automatically cascades through fallback models so free-tier quota never breaks chat!
+ * Cascades through active fallback models ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-3.1-flash-lite-preview']
  */
 export async function sendFollowUpChatMessage({
   chatHistory = [],
@@ -252,7 +250,6 @@ STRICT RULES:
 
   let lastError = null;
 
-  // Try each model in sequence for maximum reliability against free-tier quota limits
   for (const modelName of FALLBACK_MODELS) {
     try {
       const model = genAI.getGenerativeModel({

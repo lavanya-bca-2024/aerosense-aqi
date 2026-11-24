@@ -1,56 +1,62 @@
 import React from "react";
 
-// Cute Botanical Leaf SVG Component
-function LeafSvg({ color = "#10B981", size = 26, opacity = 0.75 }) {
+// Real Pointed Botanical Leaf SVG Component with stem, center vein & side veins
+function LeafSvg({ color = "#16A34A", size = 28, opacity = 0.4 }) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 24 24"
       width={size}
       height={size}
-      fill={color}
+      fill="none"
       style={{ opacity }}
-      className="drop-shadow-xs"
+      className="drop-shadow-xs overflow-visible"
     >
-      {/* Organic Curved Leaf Blade */}
+      {/* Pointed botanical leaf blade */}
       <path
-        d="M26 6C14 8 8 18 8 26C16 26 24 20 26 8C27 4 26 6 26 6Z"
+        d="M12 2C6.5 7.5 5 13 12 20C19 13 17.5 7.5 12 2Z"
+        fill={color}
       />
-      {/* Delicate Leaf Center Vein */}
+      {/* Delicate center vein & stem extending to bottom */}
       <path
-        d="M8 26C14 20 19 14 26 6"
+        d="M12 3V23"
         stroke="#FFFFFF"
         strokeWidth="1.2"
         strokeLinecap="round"
-        strokeOpacity="0.65"
-        fill="none"
+      />
+      {/* Delicate organic side veins */}
+      <path
+        d="M12 7L8 9M12 11L16 13M12 14L8 16M12 17L15 18.5"
+        stroke="#FFFFFF"
+        strokeWidth="0.9"
+        strokeLinecap="round"
+        strokeOpacity="0.75"
       />
     </svg>
   );
 }
 
-// 14 falling leaves with varied positions, sizes, delays, durations, and colors
+// 14 falling leaves with natural pointed leaf shades: #16A34A, #15803D, #22C55E
 const LEAF_CONFIGS = [
-  { id: 1, left: "3%", size: 28, color: "#059669", delay: "0s", duration: "14s", anim: "leafFall-1" },
-  { id: 2, left: "11%", size: 22, color: "#10B981", delay: "4s", duration: "17s", anim: "leafFall-2" },
-  { id: 3, left: "19%", size: 32, color: "#16A34A", delay: "1.5s", duration: "19s", anim: "leafFall-3" },
-  { id: 4, left: "27%", size: 24, color: "#059669", delay: "7s", duration: "15s", anim: "leafFall-1" },
-  { id: 5, left: "35%", size: 30, color: "#10B981", delay: "2.5s", duration: "18s", anim: "leafFall-2" },
-  { id: 6, left: "43%", size: 20, color: "#16A34A", delay: "9s", duration: "16s", anim: "leafFall-3" },
-  { id: 7, left: "51%", size: 34, color: "#059669", delay: "0.5s", duration: "20s", anim: "leafFall-1" },
-  { id: 8, left: "59%", size: 26, color: "#10B981", delay: "5.5s", duration: "14s", anim: "leafFall-2" },
-  { id: 9, left: "67%", size: 22, color: "#16A34A", delay: "3s", duration: "18s", anim: "leafFall-3" },
-  { id: 10, left: "75%", size: 30, color: "#059669", delay: "8s", duration: "15s", anim: "leafFall-1" },
-  { id: 11, left: "83%", size: 24, color: "#10B981", delay: "2s", duration: "17s", anim: "leafFall-2" },
-  { id: 12, left: "89%", size: 28, color: "#16A34A", delay: "6s", duration: "19s", anim: "leafFall-3" },
-  { id: 13, left: "95%", size: 20, color: "#059669", delay: "4.5s", duration: "13s", anim: "leafFall-1" },
-  { id: 14, left: "47%", size: 26, color: "#10B981", delay: "10s", duration: "16s", anim: "leafFall-2" },
+  { id: 1, left: "3%", size: 30, color: "#16A34A", delay: "0s", duration: "14s", anim: "leafFall-1" },
+  { id: 2, left: "11%", size: 24, color: "#15803D", delay: "4s", duration: "17s", anim: "leafFall-2" },
+  { id: 3, left: "19%", size: 34, color: "#22C55E", delay: "1.5s", duration: "19s", anim: "leafFall-3" },
+  { id: 4, left: "27%", size: 26, color: "#16A34A", delay: "7s", duration: "15s", anim: "leafFall-1" },
+  { id: 5, left: "35%", size: 32, color: "#15803D", delay: "2.5s", duration: "18s", anim: "leafFall-2" },
+  { id: 6, left: "43%", size: 22, color: "#22C55E", delay: "9s", duration: "16s", anim: "leafFall-3" },
+  { id: 7, left: "51%", size: 36, color: "#16A34A", delay: "0.5s", duration: "20s", anim: "leafFall-1" },
+  { id: 8, left: "59%", size: 28, color: "#15803D", delay: "5.5s", duration: "14s", anim: "leafFall-2" },
+  { id: 9, left: "67%", size: 24, color: "#22C55E", delay: "3s", duration: "18s", anim: "leafFall-3" },
+  { id: 10, left: "75%", size: 32, color: "#16A34A", delay: "8s", duration: "15s", anim: "leafFall-1" },
+  { id: 11, left: "83%", size: 26, color: "#15803D", delay: "2s", duration: "17s", anim: "leafFall-2" },
+  { id: 12, left: "89%", size: 30, color: "#22C55E", delay: "6s", duration: "19s", anim: "leafFall-3" },
+  { id: 13, left: "95%", size: 22, color: "#16A34A", delay: "4.5s", duration: "13s", anim: "leafFall-1" },
+  { id: 14, left: "47%", size: 28, color: "#15803D", delay: "10s", duration: "16s", anim: "leafFall-2" },
 ];
 
 export default function AnimatedBackground({ aqi = 60 }) {
-  // Thresholds:
-  // Good / Satisfactory: AQI <= 100 (Bengaluru ~61 and Chennai ~31 are vibrant green!)
-  // Moderate / Sensitive: 101 <= AQI <= 150 (Warm golden-amber)
-  // Poor / Hazardous: AQI > 150 (Hazy coral-terracotta)
+  // Good / Satisfactory: AQI <= 100
+  // Moderate / Sensitive: 101 <= AQI <= 150
+  // Poor / Hazardous: AQI > 150
   let mood = "good";
   let gradientClass = "from-[#A7F3D0] via-[#6EE7B7] to-[#34D399]/60";
 
@@ -66,10 +72,10 @@ export default function AnimatedBackground({ aqi = 60 }) {
     <div
       className={`fixed inset-0 pointer-events-none z-0 overflow-hidden bg-gradient-to-br ${gradientClass} transition-all duration-700 ease-in-out`}
     >
-      {/* 1. Good / Satisfactory Mood (AQI <= 100): 14 Gently Falling & Swaying Botanical Leaves */}
+      {/* 1. Good / Satisfactory (AQI <= 100): 14 Pointed Botanical Falling Leaves */}
       {mood === "good" && (
         <div className="absolute inset-0 overflow-hidden">
-          {/* Flowing Wind Ribbons */}
+          {/* Subtle flowing wind ribbons */}
           <svg
             className="absolute top-10 left-0 w-full h-64 opacity-25 text-emerald-700 animate-wind-flow"
             viewBox="0 0 1200 200"
@@ -91,7 +97,7 @@ export default function AnimatedBackground({ aqi = 60 }) {
             />
           </svg>
 
-          {/* 14 Falling & Swaying Botanical Leaves */}
+          {/* 14 Pointed Botanical Leaves gently falling & swaying */}
           {LEAF_CONFIGS.map((leaf) => (
             <div
               key={leaf.id}
@@ -102,17 +108,17 @@ export default function AnimatedBackground({ aqi = 60 }) {
                 animationDuration: leaf.duration,
               }}
             >
-              <LeafSvg color={leaf.color} size={leaf.size} opacity={0.7} />
+              <LeafSvg color={leaf.color} size={leaf.size} opacity={0.4} />
             </div>
           ))}
 
-          {/* Lush Translucent Nature Glow Orbs */}
-          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-emerald-400/25 blur-3xl" />
-          <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-teal-400/25 blur-3xl" />
+          {/* Lush Nature Glow Orbs */}
+          <div className="absolute top-1/4 right-10 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="absolute bottom-10 left-10 w-80 h-80 rounded-full bg-teal-400/20 blur-3xl" />
         </div>
       )}
 
-      {/* 2. Moderate Mood (101 <= AQI <= 150): Warm Golden Sunbeam Motes */}
+      {/* 2. Moderate (101 <= AQI <= 150): Warm Golden Sunbeam Motes */}
       {mood === "moderate" && (
         <div className="absolute inset-0 overflow-hidden">
           <svg
@@ -128,7 +134,6 @@ export default function AnimatedBackground({ aqi = 60 }) {
             />
           </svg>
 
-          {/* Floating Sunlight Motes */}
           <div className="sun-mote mote-1">✨</div>
           <div className="sun-mote mote-2">☀️</div>
           <div className="sun-mote mote-3">✨</div>
@@ -140,7 +145,7 @@ export default function AnimatedBackground({ aqi = 60 }) {
         </div>
       )}
 
-      {/* 3. Poor / Hazardous Mood (AQI > 150): Drifting Smoky Haze Particles */}
+      {/* 3. Poor / Hazardous (AQI > 150): Drifting Smoky Haze Particles */}
       {mood === "poor" && (
         <div className="absolute inset-0 overflow-hidden">
           <div className="dust-particle dust-1" />
@@ -149,7 +154,6 @@ export default function AnimatedBackground({ aqi = 60 }) {
           <div className="dust-particle dust-4" />
           <div className="dust-particle dust-5" />
 
-          {/* Smoky Haze Layer */}
           <div className="absolute inset-0 bg-gradient-to-t from-rose-950/15 via-transparent to-rose-900/10" />
           <div className="absolute top-1/3 left-1/4 w-96 h-96 rounded-full bg-rose-500/20 blur-3xl" />
           <div className="absolute bottom-10 right-10 w-96 h-96 rounded-full bg-orange-500/20 blur-3xl" />
