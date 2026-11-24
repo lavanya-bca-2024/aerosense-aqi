@@ -186,9 +186,9 @@ export default function App() {
         )}
 
         {/* ABOVE THE FOLD: 2-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* LEFT COLUMN: Search, Hero Card, Context Controls */}
-          <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
+          <div className="lg:col-span-6 space-y-4">
             {/* 1. City Search + Use My Location */}
             <CitySearch
               selectedCity={selectedCity}

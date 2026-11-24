@@ -82,14 +82,34 @@ export default function BreezyChatbot({
   const [isSending, setIsSending] = useState(false);
   const keyConfigured = hasGeminiApiKey();
 
-  // Casual 2-line greeting
+  // Casual 1-line greeting
+  const initialGreeting = `Hey! I’m Breezy 🍃 Checking ${city?.name || "your city"}’s air for you—what’s your plan today?`;
+
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hey! I’m Breezy 🍃 Checking ${city?.name || "your city"}’s air for you—what are you planning today?`,
+      content: initialGreeting,
       timestamp: "Just now",
+      isWelcome: true,
     },
   ]);
+
+  // Update greeting when city changes
+  useEffect(() => {
+    setMessages((prev) => {
+      if (prev.length === 1 && prev[0].isWelcome) {
+        return [
+          {
+            role: "assistant",
+            content: `Hey! I’m Breezy 🍃 Checking ${city?.name || "your city"}’s air for you—what’s your plan today?`,
+            timestamp: "Just now",
+            isWelcome: true,
+          },
+        ];
+      }
+      return prev;
+    });
+  }, [city?.name]);
 
   const messagesEndRef = useRef(null);
 

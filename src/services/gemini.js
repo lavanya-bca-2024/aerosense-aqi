@@ -1,7 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const STORAGE_KEY = "aerosense_gemini_api_key";
-const MODEL_NAME = "gemini-2.5-flash";
+const FALLBACK_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+];
 
 /**
  * Retrieves the Gemini API key from environment variable or localStorage fallback
@@ -64,7 +69,41 @@ function getGenAIClient() {
 }
 
 /**
- * Generates punchy, ultra-concise AI Advisor recommendations (scannable, no fluff!)
+ * Session storage cache helpers to preserve free-tier quota
+ */
+function getCachedAdvice(cacheKey) {
+  try {
+    const raw = sessionStorage.getItem(cacheKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Cache valid for 10 minutes
+    if (Date.now() - parsed.timestamp < 10 * 60 * 1000) {
+      return parsed.data;
+    }
+  } catch (e) {
+    // ignore sessionStorage errors
+  }
+  return null;
+}
+
+function setCachedAdvice(cacheKey, data) {
+  try {
+    sessionStorage.setItem(
+      cacheKey,
+      JSON.stringify({
+        timestamp: Date.now(),
+        data,
+      })
+    );
+  } catch (e) {
+    // ignore sessionStorage errors
+  }
+}
+
+/**
+ * Generates punchy, ultra-concise AI Advisor recommendations
+ * With automatic model fallback (gemini-2.5-flash → gemini-2.5-flash-lite → gemini-2.0-flash → gemini-2.0-flash-lite)
+ * and sessionStorage caching to withstand free-tier quota limits!
  */
 export async function generateAirQualityAdvice({
   city,
@@ -72,21 +111,21 @@ export async function generateAirQualityAdvice({
   healthProfile,
   activity,
 }) {
-  const genAI = getGenAIClient();
-  const model = genAI.getGenerativeModel({
-    model: MODEL_NAME,
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
-    },
-  });
-
-  const locationStr = `${city?.name || "City"}, ${city?.country || "India"}`;
   const aqi = currentData?.metrics?.us_aqi ?? "Unknown";
   const pm25 = currentData?.metrics?.pm2_5 ?? "Unknown";
   const pm10 = currentData?.metrics?.pm10 ?? "Unknown";
   const no2 = currentData?.metrics?.nitrogen_dioxide ?? "Unknown";
   const o3 = currentData?.metrics?.ozone ?? "Unknown";
+
+  // Check sessionStorage cache first
+  const cacheKey = `aerosense_adv_${encodeURIComponent(city?.name || "city")}_${healthProfile}_${activity}_${Math.round(aqi || 0)}`;
+  const cached = getCachedAdvice(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const genAI = getGenAIClient();
+  const locationStr = `${city?.name || "City"}, ${city?.country || "India"}`;
 
   const prompt = `
 You are AeroSense AI. Analyze live air quality for ${locationStr}:
@@ -126,24 +165,43 @@ JSON Schema:
       "detail": "Keep street-facing windows sealed."
     }
   ],
-  "contextualInsight": "PM2.5 levels are elevated from morning urban traffic."
+  "contextualInsight": "PM2.5 levels are elevated from morning traffic."
 }
 `;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-    const parsed = JSON.parse(responseText);
-    return parsed;
-  } catch (err) {
-    console.error("Gemini advice generation failed:", err);
-    throw err;
+  let lastError = null;
+
+  // Attempt generation with automatic model fallback
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: 0.2,
+          responseMimeType: "application/json",
+        },
+      });
+
+      const result = await model.generateContent(prompt);
+      const responseText = result.response.text();
+      const parsed = JSON.parse(responseText);
+
+      // Save to cache
+      setCachedAdvice(cacheKey, parsed);
+      return parsed;
+    } catch (err) {
+      console.warn(`Model ${modelName} advice attempt failed, trying fallback:`, err.message);
+      lastError = err;
+    }
   }
+
+  // If all models failed, throw last error
+  throw lastError || new Error("Failed to generate air advice from all Gemini fallback models.");
 }
 
 /**
  * Conducts warm, casual, ultra-short follow-up chat with Breezy
- * Breezy always replies in 1-2 short sentences max (under 35 words) with 1 emoji!
+ * Automatically cascades through fallback models so free-tier quota never breaks chat!
  */
 export async function sendFollowUpChatMessage({
   chatHistory = [],
@@ -154,21 +212,19 @@ export async function sendFollowUpChatMessage({
   activity,
 }) {
   const genAI = getGenAIClient();
-  const model = genAI.getGenerativeModel({
-    model: MODEL_NAME,
-    systemInstruction: `You are Breezy, a warm, cheerful, and helpful friend checking Indian city air quality.
+
+  const systemInstruction = `You are Breezy, a friendly buddy checking Indian city air quality.
 Current Location: ${city?.name || "the city"}, ${city?.country || "India"}.
 Live Data: US AQI ${currentData?.metrics?.us_aqi}, PM2.5 ${currentData?.metrics?.pm2_5} µg/m³.
 User: ${healthProfile} planning "${activity}".
 
-STRICT RESPONSE RULES:
-1. Talk like a friendly, caring companion—warm, casual, and encouraging.
-2. STRICT LENGTH: Reply in EXACTLY 1 or 2 short sentences max (under 35 words total).
+STRICT RULES:
+1. Talk like a warm, caring friend.
+2. Reply in 2 short sentences max (under 35 words total).
 3. Include exactly 1 fitting emoji (🍃, 🏃, 😷, ☀️, or 🏠).
-4. NEVER write long paragraphs, technical jargon, or bullet lists. Be super concise, punchy, and actionable!`,
-  });
+4. No lists, no essays, no technical jargon. Be super punchy!`;
 
-  // Filter chatHistory so it strictly begins with the first 'user' turn (omits initial welcome greeting)
+  // Filter chatHistory so it strictly begins with the first 'user' turn (never include initial model greeting)
   const firstUserIndex = chatHistory.findIndex((msg) => msg.role === "user" && !msg.isError);
   
   const validHistory = [];
@@ -189,15 +245,32 @@ STRICT RESPONSE RULES:
     }
   }
 
-  // If the last item in validHistory is already a user message, pop it so chat.sendMessage passes it as the active turn.
+  // If the last item in validHistory is already userMessage, pop it so chat.sendMessage passes it as the active turn.
   if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === "user") {
     validHistory.pop();
   }
 
-  const chat = model.startChat({
-    history: validHistory,
-  });
+  let lastError = null;
 
-  const result = await chat.sendMessage(userMessage);
-  return result.response.text();
+  // Try each model in sequence for maximum reliability against free-tier quota limits
+  for (const modelName of FALLBACK_MODELS) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction,
+      });
+
+      const chat = model.startChat({
+        history: validHistory,
+      });
+
+      const result = await chat.sendMessage(userMessage);
+      return result.response.text();
+    } catch (err) {
+      console.warn(`Model ${modelName} chat attempt failed, trying fallback:`, err.message);
+      lastError = err;
+    }
+  }
+
+  throw lastError || new Error("Failed to connect to Breezy across all fallback models.");
 }
