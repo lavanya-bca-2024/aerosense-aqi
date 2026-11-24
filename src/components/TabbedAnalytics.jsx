@@ -7,7 +7,7 @@ export default function TabbedAnalytics({ currentData }) {
   const [activeTab, setActiveTab] = useState("trends");
 
   return (
-    <div className="bg-white border border-emerald-100 rounded-3xl p-5 sm:p-6 shadow-soft space-y-5">
+    <div className="bg-white/95 backdrop-blur-sm border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-soft-lg space-y-5">
       {/* Tab Switcher Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-50">
         <div>

@@ -7,7 +7,6 @@ import {
   Clock,
   Home,
   RefreshCw,
-  Key,
   CheckCircle2,
   AlertCircle
 } from "lucide-react";
@@ -27,21 +26,21 @@ export default function GeminiAdvisor({
   // Verdict style configurations with botanical palette
   const verdictConfig = {
     Safe: {
-      bg: "bg-emerald-50/70 border-emerald-200 text-emerald-900",
+      bg: "bg-emerald-50/90 border-emerald-300 text-emerald-950",
       badgeBg: "bg-emerald-600 text-white",
       icon: ShieldCheck,
       iconColor: "text-emerald-700",
       label: "Safe to Proceed",
     },
     Caution: {
-      bg: "bg-amber-50/70 border-amber-200 text-amber-900",
+      bg: "bg-amber-50/90 border-amber-300 text-amber-950",
       badgeBg: "bg-amber-500 text-slate-950",
       icon: AlertTriangle,
       iconColor: "text-amber-700",
       label: "Proceed with Caution",
     },
     Avoid: {
-      bg: "bg-rose-50/70 border-rose-200 text-rose-900",
+      bg: "bg-rose-50/90 border-rose-300 text-rose-950",
       badgeBg: "bg-rose-600 text-white",
       icon: OctagonAlert,
       iconColor: "text-rose-700",
@@ -54,24 +53,24 @@ export default function GeminiAdvisor({
   const VerdictIcon = currentVerdict.icon;
 
   return (
-    <div className="bg-white border border-emerald-100 rounded-3xl p-5 sm:p-6 shadow-soft space-y-4 flex flex-col justify-between h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-3 pb-3 border-b border-emerald-50">
+    <div className="bg-white/95 backdrop-blur-sm border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-soft-lg space-y-4 flex flex-col justify-between h-full">
+      {/* Header with clean consumer labels */}
+      <div className="flex items-center justify-between gap-3 pb-3 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-2xs">
+          <div className="p-2 rounded-2xl bg-emerald-100 text-emerald-800 border border-emerald-200 shadow-2xs">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-bold text-forest-900 font-display">
-                Gemini AI Environmental Advisor
+                Smart Health Advisor
               </h2>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
-                gemini-2.5-flash
+              <span className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Personalized AI
               </span>
             </div>
-            <p className="text-[11px] text-forest-500">
-              Personalized health assessment for {healthProfile}
+            <p className="text-[11px] text-forest-600">
+              Tailored guidance for {healthProfile}
             </p>
           </div>
         </div>
@@ -80,21 +79,21 @@ export default function GeminiAdvisor({
           type="button"
           onClick={onRefreshAdvice}
           disabled={isLoadingAdvice}
-          className="text-xs px-2.5 py-1.5 rounded-xl bg-sage-50 hover:bg-emerald-50 text-forest-700 border border-emerald-100 flex items-center gap-1.5 transition-all disabled:opacity-50"
-          title="Re-generate advice with Gemini"
+          className="text-xs px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-forest-800 border border-emerald-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
+          title="Re-generate personalized advice"
         >
           <RefreshCw className={`w-3 h-3 ${isLoadingAdvice ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">{isLoadingAdvice ? "Synthesizing..." : "Refresh"}</span>
+          <span className="hidden sm:inline">{isLoadingAdvice ? "Analyzing..." : "Refresh"}</span>
         </button>
       </div>
 
       {/* API Key Missing Notice */}
       {!keyConfigured && (
-        <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-3 flex items-center justify-between gap-2 text-xs text-amber-900">
+        <div className="bg-amber-50/90 border border-amber-200 rounded-2xl p-3 flex items-center justify-between gap-2 text-xs text-amber-900">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
             <span className="text-[11px] leading-tight">
-              Using heuristic advice. Configure Gemini API key for personalized AI reasoning.
+              Using smart heuristic advice. Connect AI advisor key for custom reasoning.
             </span>
           </div>
           <button
@@ -113,10 +112,10 @@ export default function GeminiAdvisor({
           <div className="w-8 h-8 rounded-full border-3 border-emerald-200 border-t-emerald-600 animate-spin"></div>
           <div className="text-center">
             <div className="font-bold text-xs text-forest-800">
-              Gemini 2.5 Flash is analyzing live air conditions...
+              Analyzing live air conditions...
             </div>
             <div className="text-[11px] text-forest-500 mt-0.5">
-              Correlating PM2.5 & NO₂ for "{activity}"
+              Checking PM2.5 & NO₂ for "{activity}"
             </div>
           </div>
         </div>
@@ -129,7 +128,7 @@ export default function GeminiAdvisor({
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <div className="flex items-center gap-2">
                 <VerdictIcon className={`w-5 h-5 ${currentVerdict.iconColor}`} />
-                <span className="text-[11px] uppercase font-bold tracking-wider text-forest-600">
+                <span className="text-[11px] uppercase font-bold tracking-wider text-forest-700">
                   Risk Verdict
                 </span>
               </div>
@@ -148,13 +147,13 @@ export default function GeminiAdvisor({
           <div className="space-y-2">
             <div className="text-[11px] font-bold uppercase tracking-wider text-forest-600 flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              3 Actionable Precautions
+              3 Actionable Recommendations
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {/* Tip 1: Mask */}
-              <div className="bg-sage-50/70 border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between">
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold mb-1">
+                  <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold mb-1">
                     <span>🎭</span>
                     <span>{advice.tips?.[0]?.title || "Mask Guide"}</span>
                   </div>
@@ -162,20 +161,20 @@ export default function GeminiAdvisor({
                     {advice.tips?.[0]?.action || "Wear N95/KF94 mask"}
                   </div>
                   <div className="text-[10px] text-forest-600 leading-tight">
-                    {advice.tips?.[0]?.detail || "Blocks sub-2.5µm combustion soot."}
+                    {advice.tips?.[0]?.detail || "Filters microscopic combustion particles."}
                   </div>
                 </div>
               </div>
 
               {/* Tip 2: Time Window */}
-              <div className="bg-sage-50/70 border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between">
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-1.5 text-amber-700 text-xs font-bold mb-1">
+                  <div className="flex items-center gap-1.5 text-amber-800 text-xs font-bold mb-1">
                     <Clock className="w-3.5 h-3.5 text-amber-600" />
                     <span>{advice.tips?.[1]?.title || "Time Window"}</span>
                   </div>
                   <div className="font-bold text-xs text-forest-900 leading-tight mb-1">
-                    {advice.tips?.[1]?.action || "Mid-day or late afternoon"}
+                    {advice.tips?.[1]?.action || "Mid-day or afternoon"}
                   </div>
                   <div className="text-[10px] text-forest-600 leading-tight">
                     {advice.tips?.[1]?.detail || "Avoid morning temperature inversions."}
@@ -184,14 +183,14 @@ export default function GeminiAdvisor({
               </div>
 
               {/* Tip 3: Indoor Air */}
-              <div className="bg-sage-50/70 border border-emerald-100 rounded-2xl p-3 flex flex-col justify-between">
+              <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-1.5 text-emerald-700 text-xs font-bold mb-1">
+                  <div className="flex items-center gap-1.5 text-emerald-800 text-xs font-bold mb-1">
                     <Home className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{advice.tips?.[2]?.title || "Indoor Defense"}</span>
                   </div>
                   <div className="font-bold text-xs text-forest-900 leading-tight mb-1">
-                    {advice.tips?.[2]?.action || "Seal street-facing windows"}
+                    {advice.tips?.[2]?.action || "Seal street windows"}
                   </div>
                   <div className="text-[10px] text-forest-600 leading-tight">
                     {advice.tips?.[2]?.detail || "Run HEPA filter & wet mop floors."}
@@ -203,8 +202,8 @@ export default function GeminiAdvisor({
 
           {/* Urban Insight */}
           {advice.contextualInsight && (
-            <div className="pt-2 border-t border-emerald-50 text-[11px] text-forest-600 flex items-start gap-1.5">
-              <span className="font-bold text-emerald-700 shrink-0">Urban Microclimate:</span>
+            <div className="pt-2 border-t border-emerald-100 text-[11px] text-forest-600 flex items-start gap-1.5">
+              <span className="font-bold text-emerald-800 shrink-0">Urban Microclimate:</span>
               <span className="leading-tight">{advice.contextualInsight}</span>
             </div>
           )}

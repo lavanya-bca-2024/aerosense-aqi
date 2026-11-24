@@ -5,7 +5,6 @@ import {
   Sparkles, 
   MessageSquare, 
   Key, 
-  ChevronDown,
   Bot
 } from "lucide-react";
 import { sendFollowUpChatMessage, hasGeminiApiKey } from "../services/gemini";
@@ -101,7 +100,7 @@ export default function BreezyChatbot({
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: `Hi there! I'm **Breezy**, your Gemini Air Assistant 🍃\n\nI'm watching the live air quality in **${city?.name || "your city"}** for **${healthProfile}** doing **"${activity}"**.\n\nAsk me anything about travel timings, mask advice, or indoor air quality!`,
+      content: `Hi there! I'm **Breezy**, your friendly air quality assistant 🍃\n\nI'm tuned to live conditions in **${city?.name || "your city"}** for **${healthProfile}** doing **"${activity}"**.\n\nAsk me anything about travel timings, mask advice, or indoor ventilation!`,
       timestamp: "Just now",
     },
   ]);
@@ -154,7 +153,7 @@ export default function BreezyChatbot({
       console.error("Breezy chat error:", err);
       const errorMsg = {
         role: "assistant",
-        content: `Oops! Breezy couldn't reach Gemini: ${err.message || "Please check your Gemini API key in settings."}`,
+        content: `Oops! Breezy couldn't reach the assistant: ${err.message || "Please check your Gemini API key in settings."}`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         isError: true,
       };
@@ -179,8 +178,8 @@ export default function BreezyChatbot({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="group flex items-center gap-2.5 pl-3 pr-4 py-2 bg-white hover:bg-emerald-50 border border-emerald-200/90 rounded-full shadow-breezy transition-all duration-300 hover:scale-105"
-            title="Chat with Breezy • Gemini Air Assistant"
+            className="group flex items-center gap-2.5 pl-3 pr-4 py-2 bg-white/95 hover:bg-emerald-50 border border-emerald-300 rounded-full shadow-breezy transition-all duration-300 hover:scale-105"
+            title="Chat with Breezy • Air Assistant"
           >
             <div className="relative w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
               <BreezyMascot className="w-6 h-6 group-hover:scale-110 transition-transform" isWaving={true} />
@@ -188,7 +187,7 @@ export default function BreezyChatbot({
             </div>
             <div className="text-left">
               <div className="text-xs font-extrabold text-forest-900 leading-none">Ask Breezy</div>
-              <div className="text-[10px] text-emerald-700 font-semibold leading-tight">Gemini Air AI</div>
+              <div className="text-[10px] text-emerald-700 font-semibold leading-tight">Air Quality AI</div>
             </div>
           </button>
         )}
@@ -197,8 +196,8 @@ export default function BreezyChatbot({
       {/* Floating Chat Popup Window */}
       {isOpen && (
         <div className="fixed bottom-6 right-6 z-50 w-96 max-w-[calc(100vw-2rem)] h-[510px] bg-white rounded-3xl border border-emerald-200 shadow-soft-xl flex flex-col overflow-hidden animate-popupIn">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 text-white flex items-center justify-between shadow-xs">
+          {/* Header without technical model badges */}
+          <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 p-4 text-white flex items-center justify-between shadow-xs">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center p-1 border border-white/30">
                 <BreezyMascot className="w-7 h-7" />
@@ -206,13 +205,13 @@ export default function BreezyChatbot({
               <div>
                 <h3 className="font-extrabold text-sm flex items-center gap-1.5 font-display">
                   <span>Breezy</span>
-                  <span className="text-[10px] font-normal px-1.5 py-0.2 rounded-full bg-white/20 border border-white/30">
-                    Gemini 2.5 Flash
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/20 border border-white/30">
+                    Smart Air Assistant
                   </span>
                 </h3>
                 <p className="text-[11px] text-emerald-100/90 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse" />
-                  Live for {city?.name || "current location"}
+                  Live for {city?.name || "your location"}
                 </p>
               </div>
             </div>
@@ -243,7 +242,7 @@ export default function BreezyChatbot({
           {!keyConfigured && (
             <div className="bg-amber-50 border-b border-amber-200 px-3.5 py-2 flex items-center justify-between text-xs text-amber-900">
               <span className="text-[11px] font-medium leading-tight">
-                Gemini API key missing. Click to add your free key.
+                API key not set. Tap to paste your free Gemini key.
               </span>
               <button
                 type="button"
@@ -256,7 +255,7 @@ export default function BreezyChatbot({
           )}
 
           {/* Messages Area */}
-          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#F9FCFA]">
+          <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-[#F6FAF7]">
             {messages.map((msg, index) => {
               const isUser = msg.role === "user";
               return (
@@ -282,9 +281,9 @@ export default function BreezyChatbot({
               );
             })}
             {isSending && (
-              <div className="flex items-center gap-2 text-forest-500 text-xs py-1">
+              <div className="flex items-center gap-2 text-forest-600 text-xs py-1">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600 animate-spin" />
-                <span>Breezy is consulting Gemini...</span>
+                <span>Breezy is thinking...</span>
               </div>
             )}
             <div ref={messagesEndRef} />

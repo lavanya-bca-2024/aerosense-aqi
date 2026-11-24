@@ -7,12 +7,10 @@ const MODEL_NAME = "gemini-2.5-flash";
  * Retrieves the Gemini API key from environment variable or localStorage fallback
  */
 export function getGeminiApiKey() {
-  // Check Vite environment variable
   const envKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (envKey && envKey.trim() !== "" && envKey !== "your_gemini_api_key_here") {
     return envKey.trim();
   }
-  // Check local storage fallback
   const localKey = localStorage.getItem(STORAGE_KEY);
   if (localKey && localKey.trim() !== "") {
     return localKey.trim();
@@ -60,14 +58,13 @@ export function getApiKeySource() {
 function getGenAIClient() {
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
-    throw new Error("Gemini API Key is missing. Please configure VITE_GEMINI_API_KEY in .env or provide a key in the settings.");
+    throw new Error("Gemini API Key is missing. Please configure VITE_GEMINI_API_KEY in .env or provide a key in settings.");
   }
   return new GoogleGenerativeAI(apiKey);
 }
 
 /**
  * Generates structured AI Advisor recommendations
- * Returns: { verdict: 'Safe'|'Caution'|'Avoid', verdictReason, riskLevel, tips: [...], contextualInsight }
  */
 export async function generateAirQualityAdvice({
   city,
@@ -140,7 +137,7 @@ JSON Schema:
       "detail": "1-2 sentences with practical Indian household tips."
     }
   ],
-  "contextualInsight": "A sharp urban insight (e.g. regarding Bangalore/Delhi/Mumbai local weather, elevation, peak traffic hours, or thermal inversion trapping exhaust near ground level)."
+  "contextualInsight": "A sharp urban insight (e.g. regarding local weather, elevation, peak traffic hours, or thermal inversion trapping exhaust near ground level)."
 }
 
 Ensure the verdict strictly adheres to medical standards:
@@ -161,7 +158,9 @@ Ensure the verdict strictly adheres to medical standards:
 }
 
 /**
- * Initializes and conducts interactive follow-up chat with Gemini
+ * Conducts interactive follow-up chat with Gemini.
+ * NOTE: Gemini requires that chat history strictly begins with role 'user' and alternates properly.
+ * Welcome assistant messages are filtered out so history starts with a real user prompt.
  */
 export async function sendFollowUpChatMessage({
   chatHistory = [],
@@ -174,28 +173,49 @@ export async function sendFollowUpChatMessage({
   const genAI = getGenAIClient();
   const model = genAI.getGenerativeModel({
     model: MODEL_NAME,
-    systemInstruction: `You are AeroSense AI, a knowledgeable, empathetic, and scientifically rigorous air quality advisor for Indian cities.
+    systemInstruction: `You are Breezy, a friendly, scientifically rigorous, and empathetic air quality assistant for Indian cities.
 You are chatting with a user in ${city?.name || "an Indian city"}, ${city?.country || "India"}.
-Live Context:
+Live Air Metrics:
 - Current US AQI: ${currentData?.metrics?.us_aqi}
-- PM2.5: ${currentData?.metrics?.pm2_5} µg/m³
+- PM2.5: ${currentData?.metrics?.pm2_5} µg/m³ (WHO threshold 15 µg/m³)
 - PM10: ${currentData?.metrics?.pm10} µg/m³
 - NO2: ${currentData?.metrics?.nitrogen_dioxide} µg/m³
 - Ozone: ${currentData?.metrics?.ozone} µg/m³
-- User Profile: ${healthProfile}
+- User Health Profile: ${healthProfile}
 - Planned Activity: ${activity}
 
-Respond concisely, with actionable medical and environmental clarity. Reference specific pollutants, Indian daily realities (traffic, humidity, ventilation, air purifiers, masks like N95), and offer practical solutions. Keep answers within 2-4 focused paragraphs or clean bullet points.`,
+Tone: Cheerful, clear, and reassuring like a friendly green breeze. Answer concisely in 2-3 focused paragraphs or bullet points with practical advice on masks (N95), workout timing, indoor ventilation, and traffic avoidance.`,
   });
 
-  // Build history format compatible with Gemini SDK
-  const formattedHistory = chatHistory.map((msg) => ({
-    role: msg.role === "assistant" ? "model" : "user",
-    parts: [{ text: msg.content }],
-  }));
+  // Filter chatHistory so it strictly begins with the first 'user' turn (omits initial welcome greeting)
+  const firstUserIndex = chatHistory.findIndex((msg) => msg.role === "user" && !msg.isError);
+  
+  const validHistory = [];
+  if (firstUserIndex !== -1) {
+    let expectedRole = "user";
+    for (let i = firstUserIndex; i < chatHistory.length; i++) {
+      const msg = chatHistory[i];
+      if (msg.isError || !msg.content || !msg.content.trim()) continue;
+      
+      const role = msg.role === "assistant" ? "model" : "user";
+      if (role === expectedRole) {
+        validHistory.push({
+          role,
+          parts: [{ text: msg.content.trim() }],
+        });
+        expectedRole = role === "user" ? "model" : "user";
+      }
+    }
+  }
+
+  // If the last item in validHistory is already a user message (e.g. if the caller pushed it before calling),
+  // pop it so chat.sendMessage(userMessage) passes it as the active turn.
+  if (validHistory.length > 0 && validHistory[validHistory.length - 1].role === "user") {
+    validHistory.pop();
+  }
 
   const chat = model.startChat({
-    history: formattedHistory,
+    history: validHistory,
   });
 
   const result = await chat.sendMessage(userMessage);

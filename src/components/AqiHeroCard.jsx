@@ -42,7 +42,7 @@ export default function AqiHeroCard({
     : "Just now";
 
   return (
-    <div className="relative overflow-hidden bg-white border border-emerald-100 rounded-3xl p-5 sm:p-6 shadow-soft transition-all">
+    <div className="relative overflow-hidden bg-white/95 backdrop-blur-sm border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-soft-lg transition-all">
       {/* Subtle nature gradient background wash */}
       <div
         className="absolute -right-16 -top-16 w-64 h-64 rounded-full blur-3xl opacity-15 pointer-events-none"

@@ -1,23 +1,22 @@
 import React from "react";
-import { Wind, Key, Sparkles, CheckCircle2 } from "lucide-react";
+import { Wind, Key, CheckCircle2, ShieldCheck } from "lucide-react";
 import { getApiKeySource, hasGeminiApiKey } from "../services/gemini";
 
 export default function Header({ onOpenApiKeyModal }) {
   const isKeyReady = hasGeminiApiKey();
-  const source = getApiKeySource();
 
   return (
-    <header className="border-b border-emerald-100/90 bg-white/90 backdrop-blur-md sticky top-0 z-40 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+    <header className="border-b border-emerald-200/80 bg-white/85 backdrop-blur-md sticky top-0 z-40 shadow-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
         {/* Logo and Brand */}
         <div className="flex items-center gap-3">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-md shadow-emerald-500/20 text-white">
+          <div className="relative flex items-center justify-center w-9 h-9 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 shadow-md shadow-emerald-600/25 text-white">
             <svg
-              className="w-5 h-5 stroke-[2.5]"
+              className="w-5 h-5"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="2.3"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
@@ -28,43 +27,43 @@ export default function Header({ onOpenApiKeyModal }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-extrabold tracking-tight text-forest-900 font-display">
+              <span className="text-xl font-black tracking-tight text-forest-900 font-display">
                 AeroSense
               </span>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                Indian Urban AQI
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                Urban Air Quality
               </span>
             </div>
             <p className="text-[11px] text-forest-600 font-medium hidden sm:block">
-              Fresh Air Quality Intelligence & Gemini AI Advisor
+              Live Air Quality Intelligence & Health Advisor
             </p>
           </div>
         </div>
 
-        {/* Status Indicators & Settings Button */}
+        {/* Consumer-Friendly Status Indicators & Settings Button */}
         <div className="flex items-center gap-2.5">
           {/* Live Data Badge */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100/90 text-emerald-800 border border-emerald-300/80 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Open-Meteo Live API
+            Live Local Air
           </div>
 
-          {/* Gemini AI Status / Settings Trigger */}
+          {/* AI Advisor Key Button */}
           <button
             type="button"
             onClick={onOpenApiKeyModal}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200 shadow-xs ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-200 shadow-2xs ${
               isKeyReady
-                ? "bg-white border-emerald-200 hover:border-emerald-400 text-forest-800 hover:bg-emerald-50/50"
-                : "bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 animate-pulse"
+                ? "bg-white/90 border-emerald-300 hover:border-emerald-500 text-forest-800 hover:bg-emerald-50"
+                : "bg-amber-100/90 border-amber-300 text-amber-900 hover:bg-amber-200/80 animate-pulse"
             }`}
-            title="Configure Gemini API Key"
+            title="Configure AI Advisor Key"
           >
-            <Key className={`w-3.5 h-3.5 ${isKeyReady ? "text-emerald-600" : "text-amber-600"}`} />
+            <Key className={`w-3.5 h-3.5 ${isKeyReady ? "text-emerald-700" : "text-amber-700"}`} />
             <span className="hidden sm:inline">
-              {isKeyReady ? (source === "env" ? "Gemini (.env)" : "Gemini (Custom)") : "Add Gemini Key"}
+              {isKeyReady ? "AI Advisor Ready" : "Setup AI Advisor"}
             </span>
-            <span className="sm:hidden">API Key</span>
+            <span className="sm:hidden">{isKeyReady ? "Ready" : "API Key"}</span>
             {isKeyReady && (
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             )}

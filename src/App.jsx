@@ -81,7 +81,7 @@ export default function App() {
               detail: "Wet-mop floors to capture settled coarse particulate matter without creating airborne dust.",
             },
           ],
-          contextualInsight: `Open-Meteo live feed indicates primary pollutant concentrations reflect current urban vehicular & meteorological patterns in ${city.name}.`,
+          contextualInsight: `Live readings reflect current urban vehicular & meteorological patterns in ${city.name}.`,
         });
         return;
       }
@@ -101,7 +101,7 @@ export default function App() {
         const category = getAqiCategory(aqi);
         setAdvice({
           verdict: category.verdict,
-          verdictReason: `Advisory based on AQI ${aqi} (${category.label}) for ${profile}. (Gemini API error: ${err.message})`,
+          verdictReason: `Advisory based on AQI ${aqi} (${category.label}) for ${profile}. (Advisor error: ${err.message})`,
           tips: [
             {
               category: "mask",
@@ -113,7 +113,7 @@ export default function App() {
               category: "window",
               title: "Best Time Window",
               action: "Avoid early morning peak traffic hours (7:30 - 10:30 AM)",
-              detail: "Shifting workouts by 2 hours reduces toxic particulate inhalation by up to 40%.",
+              detail: "Shifting workouts reduces toxic particulate inhalation by up to 40%.",
             },
             {
               category: "indoor",
@@ -159,15 +159,33 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F3F9F5] text-forest-900 flex flex-col font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-[#DCFCE7] via-[#E8F5ED] to-[#D1FAE5] text-forest-900 flex flex-col font-sans relative botanical-bg">
+      {/* Subtle Botanical Leaf Ambient Accents in background */}
+      <div className="pointer-events-none fixed top-0 right-0 w-96 h-96 opacity-25 overflow-hidden z-0">
+        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-emerald-400">
+          <path
+            d="M50 10C80 20 160 50 180 120C190 160 160 190 120 180C50 160 20 80 10 50Z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+      <div className="pointer-events-none fixed bottom-0 left-0 w-80 h-80 opacity-20 overflow-hidden z-0">
+        <svg viewBox="0 0 200 200" fill="none" className="w-full h-full text-teal-400">
+          <path
+            d="M20 180C40 120 80 40 150 20C180 10 190 40 170 80C140 140 70 180 20 180Z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+
       {/* Top Navigation Bar */}
       <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 relative z-10">
         {/* Error Alert if Air API fails */}
         {airError && (
-          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm">
+          <div className="p-4 rounded-3xl bg-rose-50/95 border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm shadow-soft">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{airError}</span>
@@ -175,7 +193,7 @@ export default function App() {
             <button
               type="button"
               onClick={handleRefreshData}
-              className="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-semibold"
+              className="px-3 py-1.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-semibold"
             >
               Retry
             </button>
@@ -201,7 +219,7 @@ export default function App() {
                 isRefreshing={isLoadingAir}
               />
             ) : (
-              <div className="h-56 rounded-3xl bg-white border border-emerald-100 flex items-center justify-center animate-pulse">
+              <div className="h-56 rounded-3xl bg-white/90 backdrop-blur-sm border border-emerald-200 flex items-center justify-center animate-pulse shadow-soft">
                 <div className="flex items-center gap-2.5 text-forest-500">
                   <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
                   <span className="text-sm font-medium">Fetching air data for {selectedCity.name}...</span>
@@ -223,7 +241,7 @@ export default function App() {
             />
           </div>
 
-          {/* RIGHT COLUMN: Gemini Risk Verdict & 3 Actionable Tips */}
+          {/* RIGHT COLUMN: Smart Health Advisor & 3 Actionable Tips */}
           <div className="lg:col-span-6">
             <GeminiAdvisor
               city={selectedCity}
@@ -250,17 +268,17 @@ export default function App() {
         onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-emerald-100/90 bg-white/70 py-5 mt-10 text-center text-xs text-forest-600">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      {/* Consumer-Friendly Footer */}
+      <footer className="border-t border-emerald-200/70 bg-white/80 backdrop-blur-md py-4 mt-8 text-center text-xs text-forest-600 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <Leaf className="w-4 h-4 text-emerald-600" />
             <span className="font-extrabold text-forest-900 font-display">AeroSense</span>
             <span>•</span>
-            <span>Fresh Urban Air Quality Intelligence for Indian Cities</span>
+            <span>Urban Air Quality Assistant for Indian Cities</span>
           </div>
-          <div className="flex items-center gap-3 text-forest-500 font-medium">
-            <span>Powered by Open-Meteo & Gemini 2.5 Flash</span>
+          <div className="flex items-center gap-3 text-forest-600 font-medium text-[11px]">
+            <span>Real-time Local Sensor Data</span>
             <span>•</span>
             <span>WHO & CPCB NAAQS Standards</span>
           </div>
