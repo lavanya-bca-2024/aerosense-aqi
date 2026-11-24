@@ -90,7 +90,6 @@ export const DEFAULT_CITY = POPULAR_INDIAN_CITIES[0]; // Bengaluru
 
 /**
  * Search cities using Open-Meteo Geocoding API
- * Filters and ranks results for Indian cities or matches globally
  */
 export async function searchCities(query) {
   if (!query || query.trim().length < 2) return [];
@@ -105,7 +104,6 @@ export async function searchCities(query) {
     const data = await res.json();
     if (!data.results || !data.results.length) return [];
 
-    // Prioritize Indian results first if query matches, but keep all valid results
     const mapped = data.results.map((item) => ({
       id: item.id || `${item.latitude}-${item.longitude}`,
       name: item.name,
@@ -130,10 +128,53 @@ export async function searchCities(query) {
 }
 
 /**
+ * Reverse geocode latitude and longitude to get town/city and state name
+ */
+export async function reverseGeocode(latitude, longitude) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=10`;
+    const res = await fetch(url, {
+      headers: {
+        "Accept-Language": "en",
+      },
+    });
+    if (!res.ok) throw new Error("Reverse geocode failed");
+    const data = await res.json();
+    const addr = data.address || {};
+    const name = addr.city || addr.town || addr.village || addr.municipality || addr.suburb || addr.state_district || "Your Location";
+    const admin1 = addr.state || "";
+    const country = addr.country || "India";
+    return {
+      id: `gps-${latitude.toFixed(4)}-${longitude.toFixed(4)}`,
+      name,
+      admin1,
+      country,
+      latitude,
+      longitude,
+      timezone: "auto",
+      isCurrentLocation: true,
+      isIndia: addr.country_code?.toUpperCase() === "IN",
+    };
+  } catch (err) {
+    console.warn("Reverse geocode fallback:", err);
+    return {
+      id: `gps-${latitude.toFixed(4)}-${longitude.toFixed(4)}`,
+      name: "Detected Location",
+      admin1: "",
+      country: "India",
+      latitude,
+      longitude,
+      timezone: "auto",
+      isCurrentLocation: true,
+      isIndia: true,
+    };
+  }
+}
+
+/**
  * Fetch Live Air Quality data and 24-hour trends from Open-Meteo Air Quality API
  */
 export async function fetchAirQualityData(latitude, longitude, timezone = "auto") {
-  // Query past 1 day + forecast 1 day to build a rich continuous 24h-48h curve centered on now
   const url = `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=us_aqi,european_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,carbon_monoxide,sulphur_dioxide&hourly=us_aqi,pm2_5,pm10,nitrogen_dioxide,ozone,carbon_monoxide&past_days=1&forecast_days=2&timezone=${encodeURIComponent(
     timezone || "auto"
   )}`;
@@ -148,13 +189,11 @@ export async function fetchAirQualityData(latitude, longitude, timezone = "auto"
   const currentUnits = json.current_units || {};
   const hourly = json.hourly || {};
 
-  // Find the closest hourly index to the current time
   const nowIso = current.time || new Date().toISOString();
   const timeArray = hourly.time || [];
   
   let currentIndex = 0;
   if (timeArray.length > 0) {
-    // Find closest index
     const nowTime = new Date(nowIso).getTime();
     let minDiff = Infinity;
     timeArray.forEach((t, i) => {
@@ -166,7 +205,6 @@ export async function fetchAirQualityData(latitude, longitude, timezone = "auto"
     });
   }
 
-  // Extract a 24-hour continuous window (12 hours before now and 12 hours after now)
   const startIndex = Math.max(0, currentIndex - 12);
   const endIndex = Math.min(timeArray.length, currentIndex + 13);
 
@@ -174,13 +212,11 @@ export async function fetchAirQualityData(latitude, longitude, timezone = "auto"
   for (let i = startIndex; i < endIndex; i++) {
     const rawTime = timeArray[i];
     const dateObj = new Date(rawTime);
-    // Format hour in 12h format e.g. "8 AM", "3 PM"
     const hourFormatted = dateObj.toLocaleTimeString("en-US", {
       hour: "numeric",
       hour12: true,
     });
     
-    // Flag if it's the current hour
     const isCurrent = i === currentIndex;
 
     trendData.push({

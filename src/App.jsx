@@ -3,14 +3,14 @@ import Header from "./components/Header";
 import CitySearch from "./components/CitySearch";
 import AqiHeroCard from "./components/AqiHeroCard";
 import UserContextControls from "./components/UserContextControls";
-import PollutantGrid from "./components/PollutantGrid";
-import TrendChart from "./components/TrendChart";
 import GeminiAdvisor from "./components/GeminiAdvisor";
+import TabbedAnalytics from "./components/TabbedAnalytics";
+import BreezyChatbot from "./components/BreezyChatbot";
 import ApiKeyModal from "./components/ApiKeyModal";
 import { DEFAULT_CITY, fetchAirQualityData } from "./services/openMeteo";
 import { generateAirQualityAdvice, hasGeminiApiKey } from "./services/gemini";
 import { getAqiCategory } from "./utils/aqiUtils";
-import { AlertTriangle, RefreshCw, Sparkles, Heart } from "lucide-react";
+import { AlertTriangle, RefreshCw, Leaf } from "lucide-react";
 
 export default function App() {
   const [selectedCity, setSelectedCity] = useState(DEFAULT_CITY);
@@ -54,19 +54,18 @@ export default function App() {
       if (!data) return;
 
       if (!hasGeminiApiKey()) {
-        // Fallback local heuristic advice until user inputs their Gemini key
         const aqi = data.metrics?.us_aqi || 0;
         const category = getAqiCategory(aqi);
         setAdvice({
           verdict: category.verdict,
-          verdictReason: `Current US AQI is ${aqi} (${category.label}) in ${city.name}. For "${act}" with ${profile} profile, observe standard precautionary measures.`,
+          verdictReason: `Current US AQI is ${aqi} (${category.label}) in ${city.name}. For "${act}" with ${profile} profile, standard precautions are advised.`,
           riskLevel: category.label,
           dominantPollutant: data.metrics?.pm2_5 > 40 ? "PM2.5" : "PM10",
           tips: [
             {
               category: "mask",
               title: "Mask Recommendation",
-              action: aqi > 100 ? "Wear a well-fitted N95 or KF94 respirator" : "Standard mask optional depending on traffic density",
+              action: aqi > 100 ? "Wear a well-fitted N95 or KF94 respirator" : "Standard mask optional based on traffic density",
               detail: "Standard surgical or cloth masks filter less than 30% of sub-2.5µm combustion soot.",
             },
             {
@@ -98,12 +97,11 @@ export default function App() {
         setAdvice(aiResult);
       } catch (err) {
         console.error("Gemini advice error:", err);
-        // Fallback if call fails
         const aqi = data.metrics?.us_aqi || 0;
         const category = getAqiCategory(aqi);
         setAdvice({
           verdict: category.verdict,
-          verdictReason: `Advisory based on current AQI ${aqi} (${category.label}) for ${profile}. (Gemini API error: ${err.message})`,
+          verdictReason: `Advisory based on AQI ${aqi} (${category.label}) for ${profile}. (Gemini API error: ${err.message})`,
           tips: [
             {
               category: "mask",
@@ -119,7 +117,7 @@ export default function App() {
             },
             {
               category: "indoor",
-              title: "Indoor Air Advice",
+              title: "Indoor Air Defense",
               action: "Recirculate indoor air and avoid indoor combustion",
               detail: "Avoid incense sticks and open frying in unventilated kitchen areas.",
             },
@@ -142,12 +140,10 @@ export default function App() {
     });
   }, [selectedCity, loadAirQuality]);
 
-  // When city changes
   const handleCitySelect = (city) => {
     setSelectedCity(city);
   };
 
-  // Re-trigger advisory when user explicitly clicks Assess or changes context
   const handleApplyContext = () => {
     if (airData) {
       consultGeminiAdvisor(selectedCity, airData, healthProfile, activity);
@@ -163,101 +159,115 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col">
-      {/* Top Navigation */}
+    <div className="min-h-screen bg-[#F3F9F5] text-forest-900 flex flex-col font-sans">
+      {/* Top Navigation Bar */}
       <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
 
-      {/* Main Content Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* City Search & Quick Select */}
-        <CitySearch
-          selectedCity={selectedCity}
-          onSelectCity={handleCitySelect}
-        />
-
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
         {/* Error Alert if Air API fails */}
         {airError && (
-          <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-rose-300 flex items-center justify-between gap-3 text-sm">
+          <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+              <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" />
               <span>{airError}</span>
             </div>
             <button
               type="button"
               onClick={handleRefreshData}
-              className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-semibold"
+              className="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-900 text-xs font-semibold"
             >
               Retry
             </button>
           </div>
         )}
 
-        {/* Air Quality Hero Card */}
-        {airData ? (
-          <AqiHeroCard
-            city={selectedCity}
-            currentData={airData}
-            onRefresh={handleRefreshData}
-            isRefreshing={isLoadingAir}
-          />
-        ) : (
-          <div className="h-64 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center animate-pulse">
-            <div className="flex items-center gap-3 text-slate-400">
-              <RefreshCw className="w-5 h-5 animate-spin text-cyan-400" />
-              <span className="text-sm">Fetching live air data for {selectedCity.name}...</span>
-            </div>
+        {/* ABOVE THE FOLD: 2-COLUMN GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+          {/* LEFT COLUMN: Search, Hero Card, Context Controls */}
+          <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
+            {/* 1. City Search + Use My Location */}
+            <CitySearch
+              selectedCity={selectedCity}
+              onSelectCity={handleCitySelect}
+            />
+
+            {/* 2. Live AQI Hero Card (Score, Status, PM2.5 & PM10) */}
+            {airData ? (
+              <AqiHeroCard
+                city={selectedCity}
+                currentData={airData}
+                onRefresh={handleRefreshData}
+                isRefreshing={isLoadingAir}
+              />
+            ) : (
+              <div className="h-56 rounded-3xl bg-white border border-emerald-100 flex items-center justify-center animate-pulse">
+                <div className="flex items-center gap-2.5 text-forest-500">
+                  <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
+                  <span className="text-sm font-medium">Fetching air data for {selectedCity.name}...</span>
+                </div>
+              </div>
+            )}
+
+            {/* 3. User Context Controls (Health Profile + Activity Input) */}
+            <UserContextControls
+              selectedProfile={healthProfile}
+              onSelectProfile={(p) => {
+                setHealthProfile(p);
+                if (airData) consultGeminiAdvisor(selectedCity, airData, p, activity);
+              }}
+              activity={activity}
+              onActivityChange={setActivity}
+              onApplyContext={handleApplyContext}
+              isGeneratingAi={isLoadingAdvice}
+            />
           </div>
-        )}
 
-        {/* User Context Controls (Health Profile & Activity) */}
-        <UserContextControls
-          selectedProfile={healthProfile}
-          onSelectProfile={(p) => {
-            setHealthProfile(p);
-            if (airData) consultGeminiAdvisor(selectedCity, airData, p, activity);
-          }}
-          activity={activity}
-          onActivityChange={setActivity}
-          onApplyContext={handleApplyContext}
-          isGeneratingAi={isLoadingAdvice}
-        />
+          {/* RIGHT COLUMN: Gemini Risk Verdict & 3 Actionable Tips */}
+          <div className="lg:col-span-6">
+            <GeminiAdvisor
+              city={selectedCity}
+              healthProfile={healthProfile}
+              activity={activity}
+              advice={advice}
+              isLoadingAdvice={isLoadingAdvice}
+              onRefreshAdvice={handleApplyContext}
+              onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+            />
+          </div>
+        </div>
 
-        {/* Gemini AI Advisor & Interactive Follow-Up Chat */}
-        <GeminiAdvisor
-          city={selectedCity}
-          currentData={airData}
-          healthProfile={healthProfile}
-          activity={activity}
-          advice={advice}
-          isLoadingAdvice={isLoadingAdvice}
-          onRefreshAdvice={handleApplyContext}
-          onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
-        />
-
-        {/* 24-Hour Trend Chart */}
-        <TrendChart currentData={airData} />
-
-        {/* Detailed Pollutants Breakdown Grid */}
-        <PollutantGrid currentData={airData} />
+        {/* BELOW THE FOLD: Clean Tabbed Section (24h Trends & 6-Pollutant Breakdown) */}
+        <TabbedAnalytics currentData={airData} />
       </main>
 
+      {/* Cute Floating Chatbot: Breezy */}
+      <BreezyChatbot
+        city={selectedCity}
+        currentData={airData}
+        healthProfile={healthProfile}
+        activity={activity}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+      />
+
       {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6 mt-12 text-center text-xs text-slate-500">
+      <footer className="border-t border-emerald-100/90 bg-white/70 py-5 mt-10 text-center text-xs text-forest-600">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-300">AeroSense</span>
+            <Leaf className="w-4 h-4 text-emerald-600" />
+            <span className="font-extrabold text-forest-900 font-display">AeroSense</span>
             <span>•</span>
-            <span>Urban Air Quality Assistant for Indian Cities</span>
+            <span>Fresh Urban Air Quality Intelligence for Indian Cities</span>
           </div>
-          <div className="flex items-center gap-4 text-slate-400">
+          <div className="flex items-center gap-3 text-forest-500 font-medium">
             <span>Powered by Open-Meteo & Gemini 2.5 Flash</span>
             <span>•</span>
-            <span>WHO & CPCB Standards</span>
+            <span>WHO & CPCB NAAQS Standards</span>
           </div>
         </div>
       </footer>
 
-      {/* Fallback API Key Modal */}
+      {/* API Key Modal */}
       <ApiKeyModal
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}

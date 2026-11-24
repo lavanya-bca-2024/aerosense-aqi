@@ -1,16 +1,13 @@
 import React from "react";
 import { 
-  Wind, 
   Clock, 
   MapPin, 
-  ShieldCheck, 
-  ShieldAlert, 
-  OctagonAlert, 
-  Activity, 
-  ArrowUpRight,
-  RefreshCw
+  RefreshCw,
+  Flame,
+  Wind,
+  ShieldCheck
 } from "lucide-react";
-import { getAqiCategory } from "../utils/aqiUtils";
+import { getAqiCategory, POLLUTANT_INFO } from "../utils/aqiUtils";
 
 export default function AqiHeroCard({
   city,
@@ -22,20 +19,20 @@ export default function AqiHeroCard({
   const aqi = Math.round(metrics.us_aqi || 0);
   const category = getAqiCategory(aqi);
 
-  // Determine dominant pollutant
-  let dominantPollutant = "PM2.5";
-  if (metrics.pm10 > 150 && metrics.pm10 > metrics.pm2_5 * 2) {
-    dominantPollutant = "PM10 (Dust & Debris)";
-  } else if (metrics.ozone > 120) {
-    dominantPollutant = "Ozone (O₃ Photochemical Smog)";
-  } else if (metrics.nitrogen_dioxide > 80) {
-    dominantPollutant = "NO₂ (Traffic Combustion)";
-  }
+  // Top 2 pollutants
+  const pm25Val = metrics.pm2_5 != null ? Number(metrics.pm2_5).toFixed(1) : "--";
+  const pm10Val = metrics.pm10 != null ? Number(metrics.pm10).toFixed(1) : "--";
 
-  // Calculate percentage of 300 scale for visual gauge
+  const pm25Ratio = metrics.pm2_5 && POLLUTANT_INFO.pm2_5.whoSafeLimit 
+    ? (metrics.pm2_5 / POLLUTANT_INFO.pm2_5.whoSafeLimit).toFixed(1) 
+    : null;
+  const pm10Ratio = metrics.pm10 && POLLUTANT_INFO.pm10.whoSafeLimit 
+    ? (metrics.pm10 / POLLUTANT_INFO.pm10.whoSafeLimit).toFixed(1) 
+    : null;
+
+  // Visual percentage for AQI progress bar (scale 0-300)
   const progressPercent = Math.min(100, Math.round((aqi / 300) * 100));
 
-  // Format time of last measurement
   const formattedTime = currentData?.timestamp
     ? new Date(currentData.timestamp).toLocaleTimeString("en-US", {
         hour: "numeric",
@@ -45,109 +42,141 @@ export default function AqiHeroCard({
     : "Just now";
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800 rounded-3xl p-6 lg:p-8 shadow-2xl shadow-cyan-950/20">
-      {/* Background ambient glow based on AQI color */}
+    <div className="relative overflow-hidden bg-white border border-emerald-100 rounded-3xl p-5 sm:p-6 shadow-soft transition-all">
+      {/* Subtle nature gradient background wash */}
       <div
-        className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-700"
+        className="absolute -right-16 -top-16 w-64 h-64 rounded-full blur-3xl opacity-15 pointer-events-none"
         style={{ backgroundColor: category.color }}
       />
 
-      <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        {/* Left Column: City info & Dominant Pollutant */}
-        <div className="space-y-3 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-              <MapPin className="w-3.5 h-3.5" />
+      <div className="relative z-10 flex flex-col justify-between h-full space-y-4">
+        {/* Top: City & Update time */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <MapPin className="w-3.5 h-3.5 text-emerald-600" />
               {city.name}
               {city.admin1 ? `, ${city.admin1}` : ""}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300">
+            <span className="text-xs text-forest-500 font-medium">
               {city.country || "India"}
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs text-slate-400 bg-slate-800/60">
-              <Clock className="w-3 h-3 text-slate-400" />
-              Updated {formattedTime}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 text-[11px] text-forest-500">
+              <Clock className="w-3 h-3 text-emerald-600" />
+              {formattedTime}
             </span>
-          </div>
-
-          <div className="pt-1">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white flex items-center gap-3">
-              <span>{city.name}</span>
-              <span className="text-xl sm:text-2xl font-light text-slate-400">Air Quality</span>
-            </h1>
-            <p className="text-sm text-slate-300 mt-1 max-w-xl leading-relaxed">
-              {category.description}
-            </p>
-          </div>
-
-          {/* Quick Metrics Bar */}
-          <div className="flex flex-wrap items-center gap-4 pt-2">
-            <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/60 text-xs">
-              <span className="text-slate-400">Dominant Driver:</span>
-              <span className="font-semibold text-slate-200">{dominantPollutant}</span>
-            </div>
-            <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/60 text-xs">
-              <span className="text-slate-400">Indian CPCB Equivalent:</span>
-              <span className="font-semibold text-cyan-300">{category.cpcbCategory}</span>
-            </div>
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={isRefreshing}
+              className="p-1 rounded-lg text-emerald-700 hover:text-emerald-900 hover:bg-emerald-50 transition-colors"
+              title="Refresh live data"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Prominent AQI Gauge Score & Status */}
-        <div className="flex flex-col sm:flex-row items-center gap-6 lg:border-l lg:border-slate-800 lg:pl-8">
-          <div className="text-center sm:text-right">
-            <div className="text-xs uppercase font-bold tracking-widest text-slate-400 mb-1">
-              Real-Time US AQI
+        {/* Middle: Prominent AQI Score & Dynamic Category Badge */}
+        <div className="flex items-end justify-between gap-4 py-1">
+          <div>
+            <div className="text-[11px] uppercase font-bold tracking-wider text-forest-500 mb-0.5">
+              Current Air Quality Index
             </div>
-            <div className="flex items-baseline justify-center sm:justify-end gap-2">
+            <div className="flex items-baseline gap-2">
               <span
-                className="text-6xl sm:text-7xl font-black tracking-tight"
+                className="text-5xl sm:text-6xl font-black tracking-tight font-display"
                 style={{ color: category.color }}
               >
                 {aqi}
               </span>
-              <span className="text-sm font-semibold text-slate-400">/ 500</span>
-            </div>
-            <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
-                 style={{
-                   backgroundColor: `${category.color}15`,
-                   borderColor: `${category.color}40`,
-                   color: category.color,
-                 }}>
-              <span className="w-2 h-2 rounded-full animate-ping" style={{ backgroundColor: category.color }} />
-              {category.label}
+              <span className="text-xs font-bold text-forest-400 uppercase tracking-wider">
+                US AQI
+              </span>
             </div>
           </div>
 
-          {/* Visual Mini Scale */}
-          <div className="w-full sm:w-44 flex flex-col gap-2">
-            <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-              <span>0 (Good)</span>
-              <span>150</span>
-              <span>300+</span>
-            </div>
-            {/* Progress Bar with Gradient */}
-            <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
-              <div
-                className="h-full rounded-full transition-all duration-1000 ease-out"
-                style={{
-                  width: `${progressPercent}%`,
-                  backgroundColor: category.color,
-                }}
+          <div className="text-right">
+            <div
+              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-xs ${category.badge}`}
+            >
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: category.color }}
               />
+              {category.label}
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1">
-              <span>US EPA Air Index</span>
-              <button
-                type="button"
-                onClick={onRefresh}
-                disabled={isRefreshing}
-                className="flex items-center gap-1 text-cyan-400 hover:text-cyan-300 transition-colors"
-                title="Refresh live data"
-              >
-                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin" : ""}`} />
-                <span>{isRefreshing ? "Fetching..." : "Refresh"}</span>
-              </button>
+            <div className="text-[11px] text-forest-500 mt-1 font-medium">
+              CPCB: <span className="font-semibold text-forest-700">{category.cpcbCategory}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Visual Progress Bar */}
+        <div className="space-y-1">
+          <div className="h-2 w-full bg-sage-100 rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-1000 ease-out"
+              style={{
+                width: `${progressPercent}%`,
+                backgroundColor: category.color,
+              }}
+            />
+          </div>
+          <div className="flex justify-between text-[10px] text-forest-500 font-medium px-0.5">
+            <span>0 Good</span>
+            <span>100 Moderate</span>
+            <span>150+ Poor</span>
+            <span>300 Severe</span>
+          </div>
+        </div>
+
+        {/* Top 2 Pollutants Breakdown (PM2.5 & PM10) */}
+        <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-emerald-50">
+          {/* PM2.5 Card */}
+          <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-white text-emerald-700 shadow-2xs">
+                <Flame className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="text-[11px] font-bold text-forest-800 leading-none">PM2.5</div>
+                <div className="text-[10px] text-forest-500">Fine Particulate</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-base font-extrabold text-forest-900">{pm25Val}</span>
+              <span className="text-[10px] text-forest-500 ml-0.5">µg/m³</span>
+              {pm25Ratio && Number(pm25Ratio) > 1 && (
+                <div className="text-[9px] text-amber-700 font-bold">
+                  {pm25Ratio}x WHO limit
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* PM10 Card */}
+          <div className="bg-emerald-50/60 border border-emerald-100 rounded-2xl p-2.5 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-xl bg-white text-emerald-700 shadow-2xs">
+                <Wind className="w-3.5 h-3.5" />
+              </div>
+              <div>
+                <div className="text-[11px] font-bold text-forest-800 leading-none">PM10</div>
+                <div className="text-[10px] text-forest-500">Coarse Dust</div>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-base font-extrabold text-forest-900">{pm10Val}</span>
+              <span className="text-[10px] text-forest-500 ml-0.5">µg/m³</span>
+              {pm10Ratio && Number(pm10Ratio) > 1 && (
+                <div className="text-[9px] text-amber-700 font-bold">
+                  {pm10Ratio}x WHO limit
+                </div>
+              )}
             </div>
           </div>
         </div>

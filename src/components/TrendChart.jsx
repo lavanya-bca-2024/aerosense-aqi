@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import {
   AreaChart,
   Area,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -21,8 +19,8 @@ export default function TrendChart({ currentData }) {
     us_aqi: {
       label: "US AQI",
       unit: "Index",
-      color: "#06b6d4", // cyan
-      fillColor: "#06b6d4",
+      color: "#059669", // emerald-600
+      fillColor: "#10b981",
       whoLimit: 50,
       limitLabel: "Good (≤ 50)",
       dataKey: "us_aqi",
@@ -30,7 +28,7 @@ export default function TrendChart({ currentData }) {
     pm2_5: {
       label: "PM2.5 (Fine Particulate)",
       unit: "µg/m³",
-      color: "#f43f5e", // rose
+      color: "#e11d48", // rose-600
       fillColor: "#f43f5e",
       whoLimit: 15,
       limitLabel: "WHO Safe Limit (15 µg/m³)",
@@ -39,7 +37,7 @@ export default function TrendChart({ currentData }) {
     pm10: {
       label: "PM10 (Dust)",
       unit: "µg/m³",
-      color: "#f59e0b", // amber
+      color: "#d97706", // amber-600
       fillColor: "#f59e0b",
       whoLimit: 45,
       limitLabel: "WHO Safe Limit (45 µg/m³)",
@@ -48,7 +46,7 @@ export default function TrendChart({ currentData }) {
     nitrogen_dioxide: {
       label: "NO₂ (Traffic Gas)",
       unit: "µg/m³",
-      color: "#8b5cf6", // purple
+      color: "#7c3aed", // violet-600
       fillColor: "#8b5cf6",
       whoLimit: 25,
       limitLabel: "WHO Safe Limit (25 µg/m³)",
@@ -57,8 +55,8 @@ export default function TrendChart({ currentData }) {
     ozone: {
       label: "Ozone (O₃)",
       unit: "µg/m³",
-      color: "#10b981", // emerald
-      fillColor: "#10b981",
+      color: "#0d9488", // teal-600
+      fillColor: "#14b8a6",
       whoLimit: 100,
       limitLabel: "WHO Safe Limit (100 µg/m³)",
       dataKey: "ozone",
@@ -67,34 +65,34 @@ export default function TrendChart({ currentData }) {
 
   const currentConfig = metricConfigs[activeMetric] || metricConfigs.us_aqi;
 
-  // Custom Dark Tooltip
+  // Custom Botanical Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       const dataPoint = payload[0].payload;
       return (
-        <div className="bg-slate-900 border border-slate-700/80 p-3 rounded-xl shadow-xl text-xs space-y-1">
-          <div className="font-semibold text-slate-300 flex items-center justify-between gap-4 border-b border-slate-800 pb-1">
+        <div className="bg-white border border-emerald-200 p-3 rounded-2xl shadow-soft-lg text-xs space-y-1">
+          <div className="font-bold text-forest-900 flex items-center justify-between gap-4 border-b border-emerald-50 pb-1">
             <span>{dataPoint.time}</span>
             {dataPoint.isCurrent && (
-              <span className="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 text-[10px]">
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
                 Current Hour
               </span>
             )}
           </div>
           <div className="flex items-center justify-between gap-4 pt-1">
-            <span className="text-slate-400">{currentConfig.label}:</span>
-            <span className="font-bold text-sm" style={{ color: currentConfig.color }}>
+            <span className="text-forest-600 font-medium">{currentConfig.label}:</span>
+            <span className="font-black text-sm" style={{ color: currentConfig.color }}>
               {payload[0].value} {currentConfig.unit}
             </span>
           </div>
           {currentConfig.whoLimit && (
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] font-medium">
               {payload[0].value > currentConfig.whoLimit ? (
-                <span className="text-amber-400">
+                <span className="text-amber-700">
                   ⚠️ {Math.round((payload[0].value / currentConfig.whoLimit) * 10) / 10}x WHO benchmark
                 </span>
               ) : (
-                <span className="text-emerald-400">✓ Within safe guidelines</span>
+                <span className="text-emerald-700">✓ Within WHO safe limit</span>
               )}
             </div>
           )}
@@ -105,29 +103,23 @@ export default function TrendChart({ currentData }) {
   };
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur-md border border-slate-800 rounded-2xl p-5 shadow-xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-800">
-        <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-cyan-400" />
-            24-Hour Diurnal Pollutant Trend
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Hourly progression showing morning rush-hour spikes, afternoon photochemical ozone, and night settling
-          </p>
+    <div className="space-y-4">
+      {/* Metric Selector Tabs */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <Clock className="w-4 h-4 text-emerald-600" />
+          <span className="text-xs font-bold text-forest-800">Select Pollutant Curve:</span>
         </div>
-
-        {/* Metric Selector Tabs */}
-        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 flex-wrap">
+        <div className="flex items-center gap-1 bg-sage-50 p-1 rounded-2xl border border-emerald-100 flex-wrap">
           {Object.entries(metricConfigs).map(([key, config]) => (
             <button
               key={key}
               type="button"
               onClick={() => setActiveMetric(key)}
-              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-all ${
+              className={`text-xs px-3 py-1 rounded-xl font-bold transition-all ${
                 activeMetric === key
-                  ? "bg-slate-800 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-white text-forest-900 shadow-xs border border-emerald-200"
+                  : "text-forest-600 hover:text-emerald-800"
               }`}
               style={{
                 color: activeMetric === key ? config.color : undefined,
@@ -140,31 +132,31 @@ export default function TrendChart({ currentData }) {
       </div>
 
       {/* Chart Canvas */}
-      <div className="h-64 sm:h-72 w-full">
+      <div className="h-64 sm:h-72 w-full pt-2">
         {trends.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-slate-500 text-sm">
-            Loading trend data...
+          <div className="h-full flex items-center justify-center text-forest-400 text-sm">
+            Loading 24-hour diurnal trends...
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id={`gradient-${activeMetric}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={currentConfig.fillColor} stopOpacity={0.35} />
+                  <stop offset="5%" stopColor={currentConfig.fillColor} stopOpacity={0.25} />
                   <stop offset="95%" stopColor={currentConfig.fillColor} stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E2ECE5" vertical={false} />
               <XAxis
                 dataKey="time"
-                stroke="#64748b"
-                tick={{ fill: "#64748b", fontSize: 11 }}
-                axisLine={{ stroke: "#334155" }}
+                stroke="#64748B"
+                tick={{ fill: "#475569", fontSize: 11 }}
+                axisLine={{ stroke: "#CBD5E1" }}
                 tickLine={false}
               />
               <YAxis
-                stroke="#64748b"
-                tick={{ fill: "#64748b", fontSize: 11 }}
+                stroke="#64748B"
+                tick={{ fill: "#475569", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
                 domain={["auto", "auto"]}
@@ -173,12 +165,12 @@ export default function TrendChart({ currentData }) {
               {currentConfig.whoLimit && (
                 <ReferenceLine
                   y={currentConfig.whoLimit}
-                  stroke="#10b981"
+                  stroke="#059669"
                   strokeDasharray="4 4"
                   strokeWidth={1.5}
                   label={{
                     value: currentConfig.limitLabel,
-                    fill: "#10b981",
+                    fill: "#059669",
                     fontSize: 10,
                     position: "insideTopRight",
                   }}
@@ -191,20 +183,17 @@ export default function TrendChart({ currentData }) {
                 strokeWidth={2.5}
                 fillOpacity={1}
                 fill={`url(#gradient-${activeMetric})`}
-                activeDot={{ r: 6, fill: currentConfig.color, stroke: "#0f172a", strokeWidth: 2 }}
+                activeDot={{ r: 5, fill: currentConfig.color, stroke: "#FFFFFF", strokeWidth: 2 }}
               />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
 
-      <div className="flex items-center justify-between text-[11px] text-slate-400 pt-3 border-t border-slate-800/80 mt-2">
-        <span className="flex items-center gap-1.5">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
-          Showing 24h continuous window centered on current local time
-        </span>
-        <span className="flex items-center gap-1.5 text-emerald-400">
-          <span className="w-2 h-0.5 bg-emerald-400 inline-block"></span> Green dashed line: WHO Reference
+      <div className="flex items-center justify-between text-[11px] text-forest-500 pt-2 border-t border-emerald-50">
+        <span>Continuous 24-hour progression centered on current time</span>
+        <span className="flex items-center gap-1.5 text-emerald-700 font-semibold">
+          <span className="w-2.5 h-0.5 bg-emerald-600 inline-block"></span> Green Dashed Line: WHO Threshold
         </span>
       </div>
     </div>
