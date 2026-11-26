@@ -27,6 +27,7 @@ export default function App() {
   const [advice, setAdvice] = useState(null);
   const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [apiKeyVersion, setApiKeyVersion] = useState(0);
 
   // Fetch air quality data for the city
   const loadAirQuality = useCallback(async (city) => {
@@ -160,14 +161,17 @@ export default function App() {
 
   return (
     <div className="min-h-screen text-forest-900 flex flex-col font-sans relative selection:bg-emerald-300 selection:text-emerald-950">
-      {/* 1. Dynamic Air-Quality Background Animation (morphes with AQI) */}
+      {/* Dynamic Air-Quality Background Animation (morphes with AQI) */}
       <AnimatedBackground aqi={currentAqi} />
 
       {/* Top Navigation Bar */}
-      <Header onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)} />
+      <Header
+        key={apiKeyVersion}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+      />
 
-      {/* Main Content Area with pb-24 so Ask Breezy button never overlaps cards */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6 relative z-10 pb-24">
+      {/* Main Single-Column Vertical Flow Layout (max-w-4xl mx-auto space-y-6) */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 relative z-10 pb-28">
         {/* Error Alert if Air API fails */}
         {airError && (
           <div className="p-4 rounded-3xl bg-rose-50/95 backdrop-blur-md border border-rose-200 text-rose-800 flex items-center justify-between gap-3 text-sm shadow-soft">
@@ -185,66 +189,58 @@ export default function App() {
           </div>
         )}
 
-        {/* ABOVE THE FOLD: 2-COLUMN GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* LEFT COLUMN: Search, Hero Card, Context Controls */}
-          <div className="lg:col-span-6 space-y-4">
-            {/* 1. City Search + Use My Location */}
-            <CitySearch
-              selectedCity={selectedCity}
-              onSelectCity={handleCitySelect}
-            />
+        {/* 1. City Search Bar + Use My Location + Quick City Chips */}
+        <CitySearch
+          selectedCity={selectedCity}
+          onSelectCity={handleCitySelect}
+        />
 
-            {/* 2. Live AQI Hero Card (Score, Status, PM2.5 & PM10) */}
-            {airData ? (
-              <AqiHeroCard
-                city={selectedCity}
-                currentData={airData}
-                onRefresh={handleRefreshData}
-                isRefreshing={isLoadingAir}
-              />
-            ) : (
-              <div className="h-56 rounded-3xl bg-white/85 backdrop-blur-md border border-emerald-200 flex items-center justify-center animate-pulse shadow-soft">
-                <div className="flex items-center gap-2 text-forest-500">
-                  <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
-                  <span className="text-sm font-medium">Fetching air data for {selectedCity.name}...</span>
-                </div>
-              </div>
-            )}
-
-            {/* 3. User Context Controls (Health Profile + Activity Input) */}
-            <UserContextControls
-              selectedProfile={healthProfile}
-              onSelectProfile={(p) => {
-                setHealthProfile(p);
-                if (airData) consultGeminiAdvisor(selectedCity, airData, p, activity);
-              }}
-              activity={activity}
-              onActivityChange={setActivity}
-              onApplyContext={handleApplyContext}
-              isGeneratingAi={isLoadingAdvice}
-            />
+        {/* 2. Current Air Quality Index Card */}
+        {airData ? (
+          <AqiHeroCard
+            city={selectedCity}
+            currentData={airData}
+            onRefresh={handleRefreshData}
+            isRefreshing={isLoadingAir}
+          />
+        ) : (
+          <div className="h-56 rounded-3xl bg-white/95 backdrop-blur-md border border-emerald-200/80 flex items-center justify-center animate-pulse shadow-lg">
+            <div className="flex items-center gap-2 text-forest-500">
+              <RefreshCw className="w-5 h-5 animate-spin text-emerald-600" />
+              <span className="text-sm font-medium">Fetching air data for {selectedCity.name}...</span>
+            </div>
           </div>
+        )}
 
-          {/* RIGHT COLUMN: Smart Health Advisor & 3 Actionable Tips */}
-          <div className="lg:col-span-6">
-            <GeminiAdvisor
-              city={selectedCity}
-              healthProfile={healthProfile}
-              activity={activity}
-              advice={advice}
-              isLoadingAdvice={isLoadingAdvice}
-              onRefreshAdvice={handleApplyContext}
-              onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
-            />
-          </div>
-        </div>
+        {/* 3. Health Profile & Planned Activity Card */}
+        <UserContextControls
+          selectedProfile={healthProfile}
+          onSelectProfile={(p) => {
+            setHealthProfile(p);
+            if (airData) consultGeminiAdvisor(selectedCity, airData, p, activity);
+          }}
+          activity={activity}
+          onActivityChange={setActivity}
+          onApplyContext={handleApplyContext}
+          isGeneratingAi={isLoadingAdvice}
+        />
 
-        {/* BELOW THE FOLD: Clean Tabbed Section (24h Trends & 6-Pollutant Breakdown) */}
+        {/* 4. Smart Health Advisor Card (Risk Verdict + 3 Actionable Recommendations) */}
+        <GeminiAdvisor
+          city={selectedCity}
+          healthProfile={healthProfile}
+          activity={activity}
+          advice={advice}
+          isLoadingAdvice={isLoadingAdvice}
+          onRefreshAdvice={handleApplyContext}
+          onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        />
+
+        {/* 5. Deep-Dive Tabs (24-Hour Trend Chart & All Pollutants) */}
         <TabbedAnalytics currentData={airData} />
       </main>
 
-      {/* Cute Floating Chatbot: Breezy (Super short, cozy & warm!) */}
+      {/* Cute Floating Chatbot: Breezy */}
       <BreezyChatbot
         city={selectedCity}
         currentData={airData}
@@ -254,8 +250,8 @@ export default function App() {
       />
 
       {/* Consumer-Friendly Footer */}
-      <footer className="border-t border-emerald-200/70 bg-white/80 backdrop-blur-md py-4 mt-8 text-center text-xs text-forest-600 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+      <footer className="border-t border-emerald-200/70 bg-white/85 backdrop-blur-md py-5 mt-6 text-center text-xs text-forest-600 relative z-10">
+        <div className="max-w-4xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2.5">
           <div className="flex items-center gap-2">
             <Leaf className="w-4 h-4 text-emerald-600" />
             <span className="font-extrabold text-forest-900 font-display">AeroSense</span>
@@ -275,6 +271,7 @@ export default function App() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
         onKeySaved={() => {
+          setApiKeyVersion((v) => v + 1);
           if (airData) {
             consultGeminiAdvisor(selectedCity, airData, healthProfile, activity);
           }

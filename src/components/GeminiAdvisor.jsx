@@ -75,7 +75,7 @@ export default function GeminiAdvisor({
   const tip3Detail = limitWords(advice?.tips?.[2]?.detail || "Keep street-facing windows sealed and wet mop.", 10);
 
   return (
-    <div className="relative overflow-hidden bg-white/90 backdrop-blur-md border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-soft-lg">
+    <div className="relative overflow-hidden bg-white/95 backdrop-blur-md border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-lg">
       {/* Header */}
       <div className="flex items-center justify-between gap-3 pb-3 border-b border-emerald-100">
         <div className="flex items-center gap-2.5">

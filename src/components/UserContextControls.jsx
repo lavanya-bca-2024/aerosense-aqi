@@ -49,7 +49,7 @@ export default function UserContextControls({
   isGeneratingAi,
 }) {
   return (
-    <div className="bg-white/90 backdrop-blur-md border border-emerald-200/80 rounded-3xl p-5 shadow-soft-lg space-y-4">
+    <div className="bg-white/95 backdrop-blur-md border border-emerald-200/80 rounded-3xl p-5 sm:p-6 shadow-lg space-y-4">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-bold text-forest-900 flex items-center gap-2">
